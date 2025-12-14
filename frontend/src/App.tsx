@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Login from './Login'
 import Usuarios from './Usuarios'
+import Cursos from './Cursos'
 
 interface Documento {
   id: number
@@ -15,6 +16,8 @@ function App() {
   const [autenticado, setAutenticado] = useState(false)
   const [usuario, setUsuario] = useState<any>(null)
   const [mostrarUsuarios, setMostrarUsuarios] = useState(false)
+  const [curso, setCurso] = useState<any>(null)
+  const [mostrarCursos, setMostrarCursos] = useState(false)
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [formData, setFormData] = useState({
     enlace: '',
@@ -180,7 +183,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4">
       {mostrarUsuarios && <Usuarios onCerrar={() => setMostrarUsuarios(false)} />}
-      
+      {mostrarCursos && <Cursos onCerrar={() => setMostrarCursos(false)} />}
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">
@@ -188,11 +191,19 @@ function App() {
           </h1>
           <div className="flex items-center gap-4">
             <button
+              onClick={() => setMostrarCursos(true)}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 text-sm rounded transition"
+            >
+              🎓 Cursos
+            </button>
+            
+            <button
               onClick={() => setMostrarUsuarios(true)}
               className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 text-sm rounded transition"
             >
               👥 Usuarios
             </button>
+
             <span className="text-sm text-gray-600">
               👤 {usuario?.email}
             </span>
@@ -344,7 +355,15 @@ function App() {
                     <tr key={doc.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.id}</td>
                       <td className="px-4 py-3 text-sm text-blue-600">
-                        <a href={doc.enlace} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        <a 
+                          href={doc.enlace.startsWith('/docs') 
+                            ? `http://localhost:3000${doc.enlace}` 
+                            : doc.enlace
+                          } 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="hover:underline"
+                        >
                           {doc.enlace.length > 50 ? doc.enlace.substring(0, 50) + '...' : doc.enlace}
                         </a>
                       </td>

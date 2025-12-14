@@ -77,6 +77,19 @@ export async function initDatabase() {
     `)
     console.log('✅ Tabla "usuarios" lista')
     
+    // Tabla de cursos
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS cursos (
+        id SERIAL PRIMARY KEY,
+        codigo VARCHAR(25) UNIQUE NOT NULL,
+        descripcion VARCHAR(255) NOT NULL,
+        duracion_horas INTEGER  DEFAULT 50,
+        observaciones TEXT,
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    console.log('✅ Tabla "cursos" lista')
+
     // Verificar si ya existe el usuario admin
     const existeAdmin = await client.query(
       'SELECT id FROM usuarios WHERE email = $1',
