@@ -184,7 +184,7 @@ function App() {
     const cumpleAutor = !filtros.autor || doc.autor.toLowerCase().includes(filtros.autor.toLowerCase())
     const cumpleActivo = filtros.activo === '' || doc.activo === (filtros.activo === 'true')
 
-    return cumpleTema && cumpleCurso && cumpleAutor
+    return cumpleEnlace && cumpleTema && cumpleCurso && cumpleAutor && cumpleActivo
   })
 
   if (!autenticado) {
@@ -411,7 +411,9 @@ function App() {
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.tema}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.curso}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.autor}</td>
-                      <td className="h-5 w-3">{doc.activo}</td>
+                      <td className="h-5 w-3">
+                            <input type="checkbox" checked={doc.activo} readOnly/>
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         {new Date(doc.fecha_creacion).toLocaleDateString()}
                       </td>
