@@ -20,12 +20,12 @@ router.get('/documentos', async (req, res) => {
 
 // Crear nuevo documento
 router.post('/documentos', async (req, res) => {
-  const { enlace, tema, curso, autor } = req.body
+  const { enlace, tema, curso, autor, activo } = req.body
   
   try {
     const result = await pool.query(
-      'INSERT INTO indice (enlace, tema, curso, autor) VALUES ($1, $2, $3, $4) RETURNING *',
-      [enlace, tema, curso, autor]
+      'INSERT INTO indice (enlace, tema, curso, autor, activo) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [enlace, tema, curso, autor, activo]
     )
     res.json(result.rows[0])
   } catch (error) {
@@ -37,12 +37,12 @@ router.post('/documentos', async (req, res) => {
 // Actualizar documento
 router.put('/documentos/:id', async (req, res) => {
   const { id } = req.params
-  const { enlace, tema, curso, autor } = req.body
+  const { enlace, tema, curso, autor, activo } = req.body
   
   try {
     const result = await pool.query(
-      'UPDATE indice SET enlace = $1, tema = $2, curso = $3, autor = $4 WHERE id = $5 RETURNING *',
-      [enlace, tema, curso, autor, id]
+      'UPDATE indice SET enlace = $1, tema = $2, curso = $3, autor = $4, activo=$5 WHERE id = $6 RETURNING *',
+      [enlace, tema, curso, autor, activo, id]
     )
     res.json(result.rows[0])
   } catch (error) {
@@ -115,8 +115,8 @@ router.post('/cargar-pdfs', async (req, res) => {
             } else {
               // No existe, insertar
               await pool.query(
-                'INSERT INTO indice (enlace, tema, curso, autor) VALUES ($1, $2, $3, $4)',
-                [enlace, tema, 'Por definir', 'Sistema']
+                'INSERT INTO indice (enlace, tema, curso, autor, activo) VALUES ($1, $2, $3, $4, $5)',
+                [enlace, tema, 'Por definir', 'Sistema',true]
               )
               pdfsEncontrados.push(enlace)
               contador++

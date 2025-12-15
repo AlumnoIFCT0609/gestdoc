@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import Login from './Login'
 import Usuarios from './Usuarios'
 import Cursos from './Cursos'
+import Tutores from './Tutores'
 
 interface Documento {
   id: number
@@ -10,6 +11,7 @@ interface Documento {
   tema: string
   curso: string
   autor: string
+  activo: boolean
 }
 
 function App() {
@@ -18,19 +20,24 @@ function App() {
   const [mostrarUsuarios, setMostrarUsuarios] = useState(false)
   const [curso, setCurso] = useState<any>(null)
   const [mostrarCursos, setMostrarCursos] = useState(false)
+  const [tutor, setTutor] = useState<any>(null)
+  const [mostrarTutores, setMostrarTutores] = useState(false)
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [formData, setFormData] = useState({
     enlace: '',
     tema: '',
     curso: '',
-    autor: ''
+    autor: '',
+    activo: true
   })
   const [editando, setEditando] = useState<number | null>(null)
   const [mensaje, setMensaje] = useState('')
   const [filtros, setFiltros] = useState({
+    enlace:'',
     tema: '',
     curso: '',
-    autor: ''
+    autor: '',
+    activo: ''
   })
   const formRef = useRef<HTMLDivElement>(null)
 
@@ -127,7 +134,7 @@ function App() {
         setMensaje('Documento creado')
       }
       
-      setFormData({ enlace: '', tema: '', curso: '', autor: '' })
+      setFormData({ enlace: '', tema: '', curso: '', autor: '', activo:true })
       setEditando(null)
       cargarDocumentos()
       setTimeout(() => setMensaje(''), 3000)
@@ -141,7 +148,8 @@ function App() {
       enlace: doc.enlace,
       tema: doc.tema,
       curso: doc.curso,
-      autor: doc.autor
+      autor: doc.autor,
+      activo:doc.activo
     })
     setEditando(doc.id)
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -161,18 +169,21 @@ function App() {
   }
 
   const cancelar = () => {
-    setFormData({ enlace: '', tema: '', curso: '', autor: '' })
+    setFormData({ enlace: '', tema: '', curso: '', autor: '', activo:true })
     setEditando(null)
   }
 
   const limpiarFiltros = () => {
-    setFiltros({ tema: '', curso: '', autor: '' })
+    setFiltros({ enlace:'',tema: '', curso: '', autor: '', activo: '' })
   }
 
   const documentosFiltrados = documentos.filter(doc => {
+    const cumpleEnlace = !filtros.enlace || doc.enlace.toLowerCase().includes(filtros.enlace.toLowerCase())
     const cumpleTema = !filtros.tema || doc.tema.toLowerCase().includes(filtros.tema.toLowerCase())
     const cumpleCurso = !filtros.curso || doc.curso.toLowerCase().includes(filtros.curso.toLowerCase())
     const cumpleAutor = !filtros.autor || doc.autor.toLowerCase().includes(filtros.autor.toLowerCase())
+    const cumpleActivo = filtros.activo === '' || doc.activo === (filtros.activo === 'true')
+
     return cumpleTema && cumpleCurso && cumpleAutor
   })
 
@@ -184,12 +195,19 @@ function App() {
     <div className="min-h-screen bg-gray-100 py-6 px-4">
       {mostrarUsuarios && <Usuarios onCerrar={() => setMostrarUsuarios(false)} />}
       {mostrarCursos && <Cursos onCerrar={() => setMostrarCursos(false)} />}
+      {mostrarTutores && <Tutores onCerrar={() => setMostrarTutores(false)} />}  
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">
             📚 Gestión de Documentación
           </h1>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setMostrarTutores(true)}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 text-sm rounded transition"
+            >
+              🧑‍🏫 Tutores
+            </button>
             <button
               onClick={() => setMostrarCursos(true)}
               className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 text-sm rounded transition"
@@ -269,6 +287,12 @@ function App() {
                 className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+              <input
+                  type="checkbox"
+                  checked={formData.activo}
+                  onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
+                  className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                />
             </div>
 
             <div className="flex gap-2">
@@ -296,6 +320,14 @@ function App() {
             <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">🔍 Filtros:</span>
             <input
               type="text"
+              placeholder="Archivo"
+              value={filtros.enlace}
+              onChange={(e) => setFiltros({ ...filtros, enlace: e.target.value })}
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+            />
+            
+            <input
+              type="text"
               placeholder="Tema"
               value={filtros.tema}
               onChange={(e) => setFiltros({ ...filtros, tema: e.target.value })}
@@ -315,6 +347,13 @@ function App() {
               onChange={(e) => setFiltros({ ...filtros, autor: e.target.value })}
               className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
             />
+            <select value={filtros.activo}
+              onChange={(e) => setFiltros({ ...filtros, activo: e.target.value })}
+              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Todos</option>
+              <option value="true">Activos</option>
+              <option value="false">Inactivos</option>
+            </select>
             <button
               onClick={limpiarFiltros}
               className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 text-sm rounded transition whitespace-nowrap"
@@ -337,6 +376,7 @@ function App() {
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tema</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Curso</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Autor</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Activo</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                 </tr>
@@ -367,9 +407,11 @@ function App() {
                           {doc.enlace.length > 50 ? doc.enlace.substring(0, 50) + '...' : doc.enlace}
                         </a>
                       </td>
+                      
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.tema}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.curso}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.autor}</td>
+                      <td className="h-5 w-3">{doc.activo}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         {new Date(doc.fecha_creacion).toLocaleDateString()}
                       </td>

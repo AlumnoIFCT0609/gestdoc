@@ -179,8 +179,8 @@ function Usuarios({ onCerrar }: UsuariosProps) {
                   required
                 >
                   <option value="admin">Administrador</option>
-                  <option value="usuario">Usuario</option>
-                  <option value="moderador">Moderador</option>
+                  <option value="tutor">Tutor</option>
+                  <option value="alumno">Alumno</option>
                 </select>
               </div>
 

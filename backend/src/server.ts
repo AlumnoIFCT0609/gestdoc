@@ -7,6 +7,7 @@ import routes from './routes.js'
 import authRoutes from './authRoutes.js'
 import userRoutes from './userRoutes.js'
 import cursoRoutes from './cursoRoutes.js'
+import tutorRoutes from './tutorRoutes.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api', routes)
 app.use('/api', userRoutes)
 app.use('/api', cursoRoutes)
+app.use('/api', tutorRoutes)
 
 // Ruta de prueba
 app.get('/', (req, res) => {

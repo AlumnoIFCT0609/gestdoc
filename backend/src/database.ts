@@ -57,6 +57,7 @@ export async function initDatabase() {
         id SERIAL PRIMARY KEY,
         enlace TEXT NOT NULL,
         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        activo BOOLEAN default true,
         tema VARCHAR(255) NOT NULL,
         curso VARCHAR(255) NOT NULL,
         autor VARCHAR(255) NOT NULL
@@ -72,6 +73,7 @@ export async function initDatabase() {
         password VARCHAR(255) NOT NULL,
         rol VARCHAR(50) DEFAULT 'admin',
         ultima_entrada TIMESTAMP,
+        activo BOOLEAN default true,
         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
@@ -84,12 +86,47 @@ export async function initDatabase() {
         codigo VARCHAR(25) UNIQUE NOT NULL,
         descripcion VARCHAR(255) NOT NULL,
         duracion_horas INTEGER  DEFAULT 50,
+        nivel INTEGER,
+        activo BOOLEAN default true,
         observaciones TEXT,
         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
     console.log('✅ Tabla "cursos" lista')
 
+       // Tabla de Tutores
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tutores (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(25)  NOT NULL,
+        apellidos VARCHAR(25),
+        dni VARCHAR(15) ,
+        email VARCHAR(80) UNIQUE NOT NULL,
+        tlf VARCHAR(80),
+        activo BOOLEAN default true,
+        especialidad VARCHAR(155),
+        observaciones TEXT,
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    console.log('✅ Tabla "tutores" lista')
+
+  // Tabla de Alumnos
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS alumnos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(25)  NOT NULL,
+        apellidos VARCHAR(25),
+        dni VARCHAR(15) ,
+        email VARCHAR(80) UNIQUE NOT NULL,
+        tlf VARCHAR(80),
+        grupo VARCHAR(155),
+        activo BOOLEAN default true,
+        observaciones TEXT,
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    console.log('✅ Tabla "tutores" lista')
     // Verificar si ya existe el usuario admin
     const existeAdmin = await client.query(
       'SELECT id FROM usuarios WHERE email = $1',

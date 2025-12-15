@@ -8,7 +8,7 @@ const router = Router()
 router.get('/usuarios', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, rol, ultima_entrada, fecha_creacion FROM usuarios ORDER BY id ASC'
+      'SELECT id, email, rol, activo, ultima_entrada, fecha_creacion FROM usuarios ORDER BY id ASC'
     )
     res.json(result.rows)
   } catch (error) {
@@ -19,7 +19,7 @@ router.get('/usuarios', async (req, res) => {
 
 // Crear nuevo usuario
 router.post('/usuarios', async (req, res) => {
-  const { email, password, rol } = req.body
+  const { email, password, rol, activo } = req.body
   
   try {
     // Verificar si el email ya existe
@@ -36,7 +36,7 @@ router.post('/usuarios', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10)
     
     const result = await pool.query(
-      'INSERT INTO usuarios (email, password, rol) VALUES ($1, $2, $3) RETURNING id, email, rol, fecha_creacion',
+      'INSERT INTO usuarios (email, password, rol, activo) VALUES ($1, $2, $3, $4) RETURNING id, email, rol, activo, fecha_creacion',
       [email, hashedPassword, rol || 'admin']
     )
     res.json(result.rows[0])
@@ -49,22 +49,22 @@ router.post('/usuarios', async (req, res) => {
 // Actualizar usuario
 router.put('/usuarios/:id', async (req, res) => {
   const { id } = req.params
-  const { email, password, rol } = req.body
+  const { email, password, rol, activo } = req.body
   
   try {
     // Si hay nueva contraseña, encriptarla
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10)
       const result = await pool.query(
-        'UPDATE usuarios SET email = $1, password = $2, rol = $3 WHERE id = $4 RETURNING id, email, rol',
-        [email, hashedPassword, rol, id]
+        'UPDATE usuarios SET email = $1, password = $2, rol = $3, activo = $4 WHERE id = $5 RETURNING id, email,password, rol, activo',
+        [email, hashedPassword, rol, activo, id]
       )
       res.json(result.rows[0])
     } else {
       // Si no hay contraseña, solo actualizar email y rol
       const result = await pool.query(
-        'UPDATE usuarios SET email = $1, rol = $2 WHERE id = $3 RETURNING id, email, rol',
-        [email, rol, id]
+        'UPDATE usuarios SET email = $1, rol = $2, activo= $3 WHERE id = $4 RETURNING id, email, rol,activo',
+        [email, rol, activo, id]
       )
       res.json(result.rows[0])
     }
