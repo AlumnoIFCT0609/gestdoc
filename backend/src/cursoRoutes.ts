@@ -8,7 +8,7 @@ router.get('/cursos', async (req, res) => {
   try {
 
     const result = await pool.query(
-      'SELECT id, codigo, descripcion, duracion_horas, observaciones, nivel, activo fecha_creacion FROM cursos ORDER BY id ASC'
+      'SELECT id, codigo, descripcion, duracion_horas, observaciones, nivel, activo, fecha_creacion FROM cursos ORDER BY id ASC'
     )
     res.json(result.rows)
   } catch (error) {

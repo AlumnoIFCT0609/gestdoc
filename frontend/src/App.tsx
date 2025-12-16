@@ -3,6 +3,7 @@ import Login from './Login'
 import Usuarios from './Usuarios'
 import Cursos from './Cursos'
 import Tutores from './Tutores'
+import Alumnos from './Alumnos'
 
 interface Documento {
   id: number
@@ -22,6 +23,8 @@ function App() {
   const [mostrarCursos, setMostrarCursos] = useState(false)
   const [tutor, setTutor] = useState<any>(null)
   const [mostrarTutores, setMostrarTutores] = useState(false)
+  const [alumno, setAlumno] = useState<any>(null)
+  const [mostrarAlumnos, setMostrarAlumnos] = useState(false)
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [formData, setFormData] = useState({
     enlace: '',
@@ -196,12 +199,19 @@ function App() {
       {mostrarUsuarios && <Usuarios onCerrar={() => setMostrarUsuarios(false)} />}
       {mostrarCursos && <Cursos onCerrar={() => setMostrarCursos(false)} />}
       {mostrarTutores && <Tutores onCerrar={() => setMostrarTutores(false)} />}  
+      {mostrarAlumnos && <Alumnos onCerrar={() => setMostrarAlumnos(false)} />}  
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">
             📚 Gestión de Documentación
           </h1>
           <div className="flex items-center gap-4">
+             <button
+              onClick={() => setMostrarAlumnos(true)}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 text-sm rounded transition"
+            >
+             👩‍🎓👨‍🎓 Alumnos
+            </button>
             <button
               onClick={() => setMostrarTutores(true)}
               className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 text-sm rounded transition"
@@ -411,7 +421,7 @@ function App() {
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.tema}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.curso}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{doc.autor}</td>
-                      <td className="h-5 w-3">
+                      <td className="h-5 w-5">
                             <input type="checkbox" checked={doc.activo} readOnly/>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">

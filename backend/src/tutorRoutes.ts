@@ -4,7 +4,7 @@ import pool from './database.js'
 
 const router = Router()
 
-// Obtener todos los cursos
+// Obtener todos los tutores
 router.get('/tutores', async (req, res) => {
   try {
 
@@ -38,7 +38,7 @@ router.post('/tutores', async (req, res) => {
     
         
     const result = await pool.query(
-      'INSERT INTO tutores (nombre, apellidos, dni, email,tlf, especialidad, observaciones, activo) VALUES ($1, $2, $3, $4, $5, $6, $7 ) RETURNING id, nombre, apellidos, dni, email,tlf, especialidad, observaciones, activo, fecha_creacion',
+      'INSERT INTO tutores (nombre, apellidos, dni, email,tlf, especialidad, observaciones, activo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8 ) RETURNING id, nombre, apellidos, dni, email,tlf, especialidad, observaciones, activo, fecha_creacion',
        [nombre, apellidos, dni, email,tlf, especialidad, observaciones, activo]
     )
     res.json(result.rows[0])
@@ -48,7 +48,7 @@ router.post('/tutores', async (req, res) => {
   }
 })
 
-// Actualizar curso
+// Actualizar tutor
 router.put('/tutores/:id', async (req, res) => {
   const { id } = req.params
   const { nombre, apellidos, dni, email,tlf, especialidad, observaciones, activo } = req.body
@@ -68,14 +68,14 @@ router.put('/tutores/:id', async (req, res) => {
   }
 })
 
-// Eliminar curso
+// Eliminar tutor
 router.delete('/tutores/:id', async (req, res) => {
   const { id } = req.params
   
   try {
        
     await pool.query('DELETE FROM tutores WHERE id = $1', [id])
-    res.json({ mensaje: 'Curso eliminado' })
+    res.json({ mensaje: 'Tutor eliminado' })
   } catch (error) {
     console.error('Error:', error)
     res.status(500).json({ error: 'Error al eliminar tutor' })

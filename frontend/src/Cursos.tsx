@@ -265,7 +265,9 @@ function Cursos({ onCerrar }: CursosProps) {
                       <td className="px-4 py-3 text-sm text-gray-600">{curso.duracion_horas ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{curso.observaciones ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{curso.nivel ?? '—'}</td>
-                      <td className="h-5 w-5">{curso.activo ?? '—'}</td>
+                      <td className="h-5 w-5">
+                            <input type="checkbox" checked={curso.activo} readOnly/>
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {new Date(curso.fecha_creacion).toLocaleDateString('es-ES')}
                       </td>

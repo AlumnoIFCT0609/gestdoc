@@ -126,7 +126,7 @@ export async function initDatabase() {
         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
-    console.log('✅ Tabla "tutores" lista')
+    console.log('✅ Tabla "alumnos" lista')
     // Verificar si ya existe el usuario admin
     const existeAdmin = await client.query(
       'SELECT id FROM usuarios WHERE email = $1',
