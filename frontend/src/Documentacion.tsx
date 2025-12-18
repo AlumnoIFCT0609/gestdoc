@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 interface Documento {
   id: number
@@ -15,10 +15,9 @@ interface DocumentacionProps {
 }
 
 function Documentacion({ onCerrar }: DocumentacionProps) {
-  const [documentos, setDocumentos] = useState<Documento[]>([])
-  const [editando, setEditando] = useState<number | null>(null)
-  const [mensaje, setMensaje] = useState('')
+  console.log('🔵 Componente Documentacion montado')
 
+  const [documentos, setDocumentos] = useState<Documento[]>([])
   const [formData, setFormData] = useState({
     enlace: '',
     tema: '',
@@ -26,6 +25,8 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
     autor: '',
     activo: true
   })
+  const [editando, setEditando] = useState<number | null>(null)
+  const [mensaje, setMensaje] = useState('')
 
   const [filtros, setFiltros] = useState({
     enlace: '',
@@ -35,6 +36,8 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
     activo: ''
   })
 
+  const formRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     cargarDocumentos()
   }, [])
@@ -42,7 +45,8 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
   const cargarDocumentos = async () => {
     try {
       const res = await fetch('/api/documentos')
-      setDocumentos(await res.json())
+      const data = await res.json()
+      setDocumentos(data)
     } catch {
       setMensaje('❌ Error al cargar documentos')
     }
@@ -63,12 +67,11 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const url = editando
-      ? `/api/documentos/${editando}`
-      : '/api/documentos'
+    const url = editando ? `/api/documentos/${editando}` : '/api/documentos'
+    const method = editando ? 'PUT' : 'POST'
 
     const res = await fetch(url, {
-      method: editando ? 'PUT' : 'POST',
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     })
@@ -78,11 +81,7 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
       return
     }
 
-    setMensaje(editando
-      ? '✅ Documento actualizado'
-      : '✅ Documento creado'
-    )
-
+    setMensaje(editando ? '✅ Documento actualizado' : '✅ Documento creado')
     setFormData({ enlace: '', tema: '', curso: '', autor: '', activo: true })
     setEditando(null)
     cargarDocumentos()
@@ -98,20 +97,16 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
       activo: doc.activo
     })
     setEditando(doc.id)
+
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
   }
 
   const eliminar = async (id: number) => {
     if (!confirm('¿Eliminar este documento?')) return
-
-    const res = await fetch(`/api/documentos/${id}`, { method: 'DELETE' })
-    if (!res.ok) {
-      setMensaje('❌ Error al eliminar documento')
-      return
-    }
-
-    setMensaje('✅ Documento eliminado')
+    await fetch(`/api/documentos/${id}`, { method: 'DELETE' })
     cargarDocumentos()
-    setTimeout(() => setMensaje(''), 3000)
   }
 
   const cancelar = () => {
@@ -124,90 +119,58 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
   }
 
   const documentosFiltrados = documentos.filter(doc => {
-    const cumpleEnlace = !filtros.enlace || doc.enlace.toLowerCase().includes(filtros.enlace.toLowerCase())
-    const cumpleTema = !filtros.tema || doc.tema.toLowerCase().includes(filtros.tema.toLowerCase())
-    const cumpleCurso = !filtros.curso || doc.curso.toLowerCase().includes(filtros.curso.toLowerCase())
-    const cumpleAutor = !filtros.autor || doc.autor.toLowerCase().includes(filtros.autor.toLowerCase())
-    const cumpleActivo =
-      filtros.activo === '' || doc.activo === (filtros.activo === 'true')
-
-    return cumpleEnlace && cumpleTema && cumpleCurso && cumpleAutor && cumpleActivo
+    return (
+      (!filtros.enlace || doc.enlace.toLowerCase().includes(filtros.enlace.toLowerCase())) &&
+      (!filtros.tema || doc.tema.toLowerCase().includes(filtros.tema.toLowerCase())) &&
+      (!filtros.curso || doc.curso.toLowerCase().includes(filtros.curso.toLowerCase())) &&
+      (!filtros.autor || doc.autor.toLowerCase().includes(filtros.autor.toLowerCase())) &&
+      (filtros.activo === '' || doc.activo === (filtros.activo === 'true'))
+    )
   })
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto">
 
-        {/* HEADER */}
-        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">
-            📚 Gestión de Documentación
-          </h2>
-          <button onClick={onCerrar} className="text-3xl font-bold text-gray-500">
-            ×
-          </button>
+        <div className="sticky top-0 bg-white border-b p-4 flex justify-between">
+          <h2 className="text-2xl font-bold">📚 Gestión de Documentación</h2>
+          <button onClick={onCerrar} className="text-3xl">×</button>
         </div>
 
         <div className="p-6">
 
-          {/* MENSAJE */}
-          {mensaje && (
-            <div className={`mb-4 p-3 rounded text-sm ${
-              mensaje.includes('❌')
-                ? 'bg-red-100 text-red-700'
-                : 'bg-green-100 text-green-700'
-            }`}>
-              {mensaje}
-            </div>
-          )}
+          {mensaje && <div className="mb-4 p-3 bg-gray-100 rounded">{mensaje}</div>}
 
           {/* FORMULARIO */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold">
-                {editando ? '✏️ Editar Documento' : '➕ Nuevo Documento'}
-              </h3>
-              <button
-                onClick={cargarPDFs}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm rounded"
-              >
-                🔄 Cargar PDFs
-              </button>
-            </div>
+          <div ref={formRef} className="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold mb-3">
+              {editando ? '✏️ Editar Documento' : '➕ Nuevo Documento'}
+            </h3>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <input placeholder="Enlace" value={formData.enlace}
-                onChange={e => setFormData({ ...formData, enlace: e.target.value })}
-                className="input" required />
+              <input className="input" placeholder="Enlace" value={formData.enlace}
+                onChange={e => setFormData({ ...formData, enlace: e.target.value })} required />
+              <input className="input" placeholder="Tema" value={formData.tema}
+                onChange={e => setFormData({ ...formData, tema: e.target.value })} required />
+              <input className="input" placeholder="Curso" value={formData.curso}
+                onChange={e => setFormData({ ...formData, curso: e.target.value })} required />
+              <input className="input" placeholder="Autor" value={formData.autor}
+                onChange={e => setFormData({ ...formData, autor: e.target.value })} required />
+              <input type="checkbox" checked={formData.activo}
+                onChange={e => setFormData({ ...formData, activo: e.target.checked })} />
 
-              <input placeholder="Tema" value={formData.tema}
-                onChange={e => setFormData({ ...formData, tema: e.target.value })}
-                className="input" required />
-
-              <input placeholder="Curso" value={formData.curso}
-                onChange={e => setFormData({ ...formData, curso: e.target.value })}
-                className="input" required />
-
-              <input placeholder="Autor" value={formData.autor}
-                onChange={e => setFormData({ ...formData, autor: e.target.value })}
-                className="input" required />
-
-              <input type="checkbox"
-                checked={formData.activo}
-                onChange={e => setFormData({ ...formData, activo: e.target.checked })}
-                className="h-5 w-5" />
-            </form>
-
-            <div className="mt-3 flex gap-2">
-              <button className="bg-green-500 text-white px-4 py-2 rounded text-sm">
-                {editando ? '💾 Actualizar' : '➕ Crear'}
-              </button>
-              {editando && (
-                <button onClick={cancelar} className="bg-gray-500 text-white px-4 py-2 rounded text-sm">
-                  ❌ Cancelar
+              <div className="md:col-span-5 flex gap-2 mt-3">
+                <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
+                  {editando ? 'Actualizar' : 'Crear'}
                 </button>
-              )}
-            </div>
+                {editando && (
+                  <button type="button" onClick={cancelar}
+                    className="bg-gray-500 text-white px-4 py-2 rounded">
+                    Cancelar
+                  </button>
+                )}
+              </div>
+            </form>
           </div>
 
           {/* FILTROS */}
@@ -215,27 +178,22 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
             <div className="flex flex-wrap gap-3 items-center">
               <span className="font-semibold text-sm">🔍 Filtros:</span>
 
-              <input placeholder="Archivo" value={filtros.enlace}
-                onChange={e => setFiltros({ ...filtros, enlace: e.target.value })}
-                className="input flex-1" />
+              <input className="input flex-1" placeholder="Archivo"
+                value={filtros.enlace}
+                onChange={e => setFiltros({ ...filtros, enlace: e.target.value })} />
+              <input className="input flex-1" placeholder="Tema"
+                value={filtros.tema}
+                onChange={e => setFiltros({ ...filtros, tema: e.target.value })} />
+              <input className="input flex-1" placeholder="Curso"
+                value={filtros.curso}
+                onChange={e => setFiltros({ ...filtros, curso: e.target.value })} />
+              <input className="input flex-1" placeholder="Autor"
+                value={filtros.autor}
+                onChange={e => setFiltros({ ...filtros, autor: e.target.value })} />
 
-              <input placeholder="Tema" value={filtros.tema}
-                onChange={e => setFiltros({ ...filtros, tema: e.target.value })}
-                className="input flex-1" />
-
-              <input placeholder="Curso" value={filtros.curso}
-                onChange={e => setFiltros({ ...filtros, curso: e.target.value })}
-                className="input flex-1" />
-
-              <input placeholder="Autor" value={filtros.autor}
-                onChange={e => setFiltros({ ...filtros, autor: e.target.value })}
-                className="input flex-1" />
-
-              <select
+              <select className="input"
                 value={filtros.activo}
-                onChange={e => setFiltros({ ...filtros, activo: e.target.value })}
-                className="input"
-              >
+                onChange={e => setFiltros({ ...filtros, activo: e.target.value })}>
                 <option value="">Todos</option>
                 <option value="true">Activos</option>
                 <option value="false">Inactivos</option>
@@ -243,7 +201,7 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
 
               <button onClick={limpiarFiltros}
                 className="bg-gray-500 text-white px-3 py-2 rounded text-sm">
-                🗑️ Limpiar
+                Limpiar
               </button>
 
               <span className="text-xs text-gray-500">
@@ -254,51 +212,21 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
 
           {/* TABLA */}
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th>ID</th>
-                  <th>Enlace</th>
-                  <th>Tema</th>
-                  <th>Curso</th>
-                  <th>Autor</th>
-                  <th>Activo</th>
-                  <th>Fecha</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
+            <table className="w-full">
               <tbody>
-                {documentosFiltrados.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="text-center py-8 text-gray-500">
-                      📭 No hay documentos
+                {documentosFiltrados.map(doc => (
+                  <tr key={doc.id}>
+                    <td>{doc.id}</td>
+                    <td>{doc.enlace}</td>
+                    <td>{doc.tema}</td>
+                    <td>{doc.curso}</td>
+                    <td>{doc.autor}</td>
+                    <td>
+                      <button onClick={() => editar(doc)}>✏️</button>
+                      <button onClick={() => eliminar(doc.id)}>🗑️</button>
                     </td>
                   </tr>
-                ) : (
-                  documentosFiltrados.map(doc => (
-                    <tr key={doc.id} className="hover:bg-gray-50">
-                      <td>{doc.id}</td>
-                      <td className="text-blue-600 truncate max-w-xs">
-                        <a href={doc.enlace} target="_blank" rel="noreferrer">
-                          {doc.enlace}
-                        </a>
-                      </td>
-                      <td>{doc.tema}</td>
-                      <td>{doc.curso}</td>
-                      <td>{doc.autor}</td>
-                      <td>
-                        <input type="checkbox" checked={doc.activo} readOnly />
-                      </td>
-                      <td>
-                        {new Date(doc.fecha_creacion).toLocaleDateString('es-ES')}
-                      </td>
-                      <td>
-                        <button onClick={() => editar(doc)} className="mr-2">✏️</button>
-                        <button onClick={() => eliminar(doc.id)}>🗑️</button>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>

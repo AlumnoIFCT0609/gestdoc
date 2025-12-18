@@ -12,21 +12,23 @@ body {
 }
 
 .bg-app {
-  position: relative;
-  background-image: url('./assets/backgrounds/academia-bg.png');
+  position: relative; 
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  
 }
 
 .bg-app::before {
   content: '';
-  position: absolute;
-  inset: 0;
-  background-color: rgba(255, 255, 255, 0.8);
+  position: absolute; 
+  inset: 0;  
+  background-image: url('./assets/backgrounds/academia-bg.png');
   pointer-events: none;
-}
-
-.bg-app > * {
-  position: relative;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  z-index: -1; /* Esto pone el fondo DETRÁS del contenido */
+  pointer-events: none; 
 }

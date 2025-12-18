@@ -65,6 +65,25 @@ router.put('/cursos/:id', async (req, res) => {
   }
 })
 
+// Obtener un curso por ID
+router.get('/cursos/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const result = await pool.query(
+      'SELECT * FROM cursos WHERE id = $1',
+      [id]
+    )
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Curso no encontrado' })
+    }
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error('Error:', error)
+    res.status(500).json({ error: 'Error al obtener curso' })
+  }
+})
+
+
 // Eliminar curso
 router.delete('/cursos/:id', async (req, res) => {
   const { id } = req.params

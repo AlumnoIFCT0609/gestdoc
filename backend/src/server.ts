@@ -9,6 +9,7 @@ import userRoutes from './userRoutes.js'
 import cursoRoutes from './cursoRoutes.js'
 import tutorRoutes from './tutorRoutes.js'
 import alumnoRoutes from './alumnoRoutes.js'
+import edicionesCursosRoutes from './edicionesCursosRoutes.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -29,7 +30,7 @@ app.use('/api', userRoutes)
 app.use('/api', cursoRoutes)
 app.use('/api', tutorRoutes)
 app.use('/api', alumnoRoutes)
-
+app.use('/api', edicionesCursosRoutes)
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.json({ mensaje: '🚀 Servidor funcionando correctamente' })
