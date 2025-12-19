@@ -140,7 +140,15 @@ export async function initDatabase() {
     `)
     console.log('✅ Tabla "edicionescursos" lista')
 
-
+      await client.query(`
+      CREATE TABLE IF NOT EXISTS matriculasalumnos (
+        id SERIAL PRIMARY KEY,
+        ediciones_cursos_id INTEGER NOT NULL REFERENCES edicionescursos(id) ON DELETE SET NULL,
+        activo BOOLEAN DEFAULT true,
+        alumno_id INTEGER NOT NULL REFERENCES alumnos(id) ON DELETE SET NULL
+      )
+    `)
+    console.log('✅ Tabla "matriculasalumnos" lista')
 
 
 
