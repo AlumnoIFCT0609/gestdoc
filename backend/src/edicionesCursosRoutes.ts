@@ -8,7 +8,7 @@ router.get('/edicionescursos', async (req, res) => {
   try {
 
     const result = await pool.query(
-      'SELECT id, curso_id, activo, fecha_inicio, fecha_fin, tutor_id FROM edicionescursos ORDER BY id ASC'
+      'SELECT id, curso_id, activo, fecha_inicio, fecha_fin, tutor_id, maximo_alumnos FROM edicionescursos ORDER BY id ASC'
     )
     res.json(result.rows)
   } catch (error) {
@@ -20,7 +20,7 @@ router.get('/edicionescursos', async (req, res) => {
 
 // Crear nuevo curso
 router.post('/edicionescursos', async (req, res) => {
-  const { curso_id, activo, fecha_inicio, fecha_fin, tutor_id } = req.body
+  const { curso_id, activo, fecha_inicio, fecha_fin, tutor_id, maximo_alumnos } = req.body
   
   try {
     // Verificar si el codigo ya existe
@@ -35,8 +35,8 @@ router.post('/edicionescursos', async (req, res) => {
     
         
     const result = await pool.query(
-      'INSERT INTO edicionescursos (curso_id, activo, fecha_inicio, fecha_fin, tutor_id) VALUES ($1, $2, $3, $4,$5) RETURNING curso_id,activo, fecha_inicio, fecha_fin, tutor_id',
-       [curso_id,activo, fecha_inicio, fecha_fin, tutor_id ]
+      'INSERT INTO edicionescursos (curso_id, activo, fecha_inicio, fecha_fin, tutor_id, maximo_alumnos) VALUES ($1, $2, $3, $4,$5,$6) RETURNING curso_id,activo, fecha_inicio, fecha_fin, tutor_id, maximo_alumnos',
+       [curso_id,activo, fecha_inicio, fecha_fin, tutor_id, maximo_alumnos ]
     )
     res.json(result.rows[0])
   } catch (error) {
@@ -48,14 +48,14 @@ router.post('/edicionescursos', async (req, res) => {
 // Actualizar curso
 router.put('/edicionescursos/:id', async (req, res) => {
   const { id } = req.params
-  const { curso_id,activo, fecha_inicio, fecha_fin, tutor_id} = req.body
+  const { curso_id,activo, fecha_inicio, fecha_fin, tutor_id, maximo_alumnos} = req.body
   
   try {
   
    
       const result = await pool.query(
-        'UPDATE edicionescursos SET curso_id = $1, activo = $2 , fecha_inicio = $3, fecha_fin = $4, tutor_id=$5 WHERE id = $6 RETURNING id, curso_id,activo, fecha_inicio, fecha_fin, tutor_id',
-        [curso_id,activo, fecha_inicio, fecha_fin, tutor_id, id]
+        'UPDATE edicionescursos SET curso_id = $1, activo = $2 , fecha_inicio = $3, fecha_fin = $4, tutor_id=$5, maximo_alumnos=$6 WHERE id = $7 RETURNING id, curso_id,activo, fecha_inicio, fecha_fin, tutor_id, maximo_alumnos',
+        [curso_id,activo, fecha_inicio, fecha_fin, tutor_id,maximo_alumnos, id]
       )
       res.json(result.rows[0])
     

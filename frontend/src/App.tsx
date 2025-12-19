@@ -6,6 +6,7 @@ import Tutores from './Tutores'
 import Alumnos from './Alumnos'
 import Documentacion from './Documentacion'
 import EdicionesCursos from './EdicionesCursos'  
+import MatriculasAlumnos from './matriculasAlumnos'
 
 function App() {
   const [autenticado, setAutenticado] = useState(false)
@@ -15,8 +16,8 @@ function App() {
   const [mostrarTutores, setMostrarTutores] = useState(false)
   const [mostrarAlumnos, setMostrarAlumnos] = useState(false)
   const [mostrarDocumentacion, setMostrarDocumentacion] = useState(false)
-  const [mostrarEdicionesCursos, setMostrarEdicioesCursos] = useState(false)
-
+  const [mostrarEdicionesCursos, setMostrarEdicionesCursos] = useState(false)
+  const [mostrarMatriculasAlumnos, setMostrarMatriculasAlumnos] = useState(false)
 
   useEffect(() => {
     verificarAutenticacion()
@@ -63,7 +64,8 @@ function App() {
       {mostrarTutores && <Tutores onCerrar={() => setMostrarTutores(false)} />}
       {mostrarAlumnos && <Alumnos onCerrar={() => setMostrarAlumnos(false)} />}
       {mostrarDocumentacion && <Documentacion onCerrar={() => setMostrarDocumentacion(false)}/>}
-      {mostrarEdicionesCursos && <EdicionesCursos onCerrar={() => setMostrarEdicioesCursos(false)} />}  
+      {mostrarEdicionesCursos && <EdicionesCursos onCerrar={() => setMostrarEdicionesCursos(false)} />}  
+      {mostrarMatriculasAlumnos && <MatriculasAlumnos onCerrar={() => setMostrarMatriculasAlumnos(false)} />}  
       <div className="max-w-7xl mx-auto">
 
        {/* HEADER */}
@@ -105,12 +107,17 @@ function App() {
         🎓 Cursos
       </button>
       <button
-        onClick={() => setMostrarEdicioesCursos(true)}
+        onClick={() => setMostrarEdicionesCursos(true)}
         className="bg-green-500 hover:bg-green-600 btn"
       >
         🎓 Ediciones de Cursos
       </button>
-
+      <button
+        onClick={() => setMostrarMatriculasAlumnos(true)}
+        className="bg-green-500 hover:bg-green-600 btn"
+      >
+        📋 Matricular Alumnos
+      </button>
 
 
       <button

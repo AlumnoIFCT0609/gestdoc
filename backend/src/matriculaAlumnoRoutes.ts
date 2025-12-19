@@ -83,12 +83,23 @@ router.delete('/matriculasalumnos/:id', async (req, res) => {
 router.get('/matriculasalumnos/selectores/edicionescursos', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, curso_id, descripcion,  fecha_inicio, fecha_fin FROM edicionescursos WHERE activo = true ORDER BY descripcion ASC'
+      `SELECT 
+        ec.id, 
+        ec.curso_id, 
+        c.descripcion,
+        ec.fecha_inicio, 
+        ec.fecha_fin,
+        ec.tutor_id,
+        ec.maximo_alumnos
+      FROM edicionescursos ec
+      INNER JOIN cursos c ON ec.curso_id = c.id
+      WHERE ec.activo = true 
+      ORDER BY c.descripcion ASC, ec.fecha_inicio DESC`
     )
     res.json(result.rows)
   } catch (error) {
     console.error('Error:', error)
-    res.status(500).json({ error: 'Error al obtener cursos' })
+    res.status(500).json({ error: 'Error al obtener ediciones de cursos' })
   }
 })
 

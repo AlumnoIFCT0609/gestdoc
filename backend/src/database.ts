@@ -135,6 +135,7 @@ export async function initDatabase() {
         activo BOOLEAN DEFAULT true,
         fecha_inicio DATE,
         fecha_fin DATE,
+        maximo_alumnos INTEGER default 15,
         tutor_id INTEGER REFERENCES tutores(id) ON DELETE SET NULL
       )
     `)

@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 
-interface MatriculaAlumno {
+interface Matricula {
   id: number
-  edicion_curso_id: number
+  ediciones_cursos_id: number
   activo: boolean
   alumno_id: number
-  curso_descripcion?: string
   alumno_nombre?: string
   alumno_apellidos?: string
 }
@@ -13,11 +12,11 @@ interface MatriculaAlumno {
 interface EdicionCurso {
   id: number
   curso_id: number
-  activo: boolean
-  duracion_horas?: number | null
-  fecha_inicio: Date
-  fecha_fin:Date
+  descripcion: string
+  fecha_inicio: string
+  fecha_fin: string
   tutor_id: number
+  maximo_alumnos?: number
 }
 
 interface Alumno {
@@ -26,240 +25,301 @@ interface Alumno {
   apellidos: string
 }
 
-interface MatriculaAlumnoProps {
+interface MatriculasAlumnosProps {
   onCerrar: () => void
 }
 
-function MatriculasAlumnos({ onCerrar }: MatriculaAlumnoProps) {
-  console.log('🔵 Componente EdicionesCursos montado')
+function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
+  console.log('🔵 Componente MatriculasAlumnos montado')
   
+  const [edicionSeleccionada, setEdicionSeleccionada] = useState<string>('')
   const [ediciones, setEdiciones] = useState<EdicionCurso[]>([])
-  const [matriculasAlumnos, setMatriculasAlumnos] = useState<MatriculaAlumno[]>([])
   const [alumnos, setAlumnos] = useState<Alumno[]>([])
-  const [formData, setFormData] = useState({
-    edicion_curso_id: '',
-    activo: true,
-    alumno_id: '',
-    fecha_fin: '',
-    tutor_id: ''
-  })
-  const [editando, setEditando] = useState<number | null>(null)
+  const [alumnosSeleccionados, setAlumnosSeleccionados] = useState<number[]>([])
+  const [matriculas, setMatriculas] = useState<Matricula[]>([])
   const [mensaje, setMensaje] = useState('')
-  const [horasCalculadas, setHorasCalculadas] = useState<number>(0)
-  const [errorHoras, setErrorHoras] = useState<string>('')
+  const [cargando, setCargando] = useState(false)
+  const [edicionInfo, setEdicionInfo] = useState<EdicionCurso | null>(null)
 
   useEffect(() => {
-    cargarEdiciones() //edicionesCursos
-    cargarMatriculas() // matriculasAlumnos
-    cargarAlumnos() //alumnos
+    cargarEdiciones()
+    cargarAlumnos()
   }, [])
-//*************************************************************************************************** */
+
   useEffect(() => {
-    calcularHoras()
-  }, [formData.fecha_inicio, formData.fecha_fin, formData.curso_id])
+    if (edicionSeleccionada) {
+      cargarMatriculas()
+      cargarInfoEdicion()
+    } else {
+      setMatriculas([])
+      setEdicionInfo(null)
+    }
+    setAlumnosSeleccionados([])
+  }, [edicionSeleccionada])
 
   const cargarEdiciones = async () => {
     try {
-      const res = await fetch('/api/edicionescursos')
+      const res = await fetch('/api/matriculasalumnos/selectores/edicionescursos')
+      const data = await res.json()
+      setEdiciones(data)
+    } catch (error) {
+      console.error('Error al cargar ediciones:', error)
+    }
+  }
+
+  const cargarAlumnos = async () => {
+    try {
+      const res = await fetch('/api/matriculasalumnos/selectores/alumnos')
+      const data = await res.json()
+      setAlumnos(data)
+    } catch (error) {
+      console.error('Error al cargar alumnos:', error)
+    }
+  }
+
+  const cargarInfoEdicion = async () => {
+    if (!edicionSeleccionada) return
+    
+    try {
+      const res = await fetch(`/api/edicionescursos/${edicionSeleccionada}`)
+      const data = await res.json()
+      setEdicionInfo(data)
+    } catch (error) {
+      console.error('Error al cargar info de edición:', error)
+    }
+  }
+
+  const cargarMatriculas = async () => {
+    if (!edicionSeleccionada) return
+    
+    try {
+      const res = await fetch('/api/matriculasalumnos')
       const data = await res.json()
       
-      // Cargar datos relacionados para mostrar en la tabla
-      const edicionesConDetalles = await Promise.all(
-        data.map(async (edicion: EdicionCurso) => {
-          const [cursoRes, tutorRes] = await Promise.all([
-            fetch(`/api/cursos/${edicion.curso_id}`),
-            fetch(`/api/tutores/${edicion.tutor_id}`)
-          ])
-          
-          const curso = await cursoRes.json()
-          const tutor = await tutorRes.json()
+      // Filtrar por edición seleccionada
+      const matriculasFiltradas = data.filter(
+        (m: Matricula) => m.ediciones_cursos_id === parseInt(edicionSeleccionada)
+      )
+      
+      // Cargar datos de alumnos
+      const matriculasConDetalles = await Promise.all(
+        matriculasFiltradas.map(async (matricula: Matricula) => {
+          const alumnoRes = await fetch(`/api/alumnos/${matricula.alumno_id}`)
+          const alumno = await alumnoRes.json()
           
           return {
-            ...edicion,
-            curso_descripcion: curso.descripcion,
-            tutor_nombre: tutor.nombre,
-            tutor_apellidos: tutor.apellidos
+            ...matricula,
+            alumno_nombre: alumno.nombre,
+            alumno_apellidos: alumno.apellidos
           }
         })
       )
       
-      setEdiciones(edicionesConDetalles)
+      setMatriculas(matriculasConDetalles)
     } catch (error) {
-      console.error('Error al cargar ediciones:', error)
-      setMensaje('Error al cargar ediciones de cursos')
+      console.error('Error al cargar matrículas:', error)
     }
   }
 
-  const cargarCursos = async () => {
-    try {
-      const res = await fetch('/api/edicionescursos/selectores/cursos')
-      const data = await res.json()
-      setCursos(data)
-    } catch (error) {
-      console.error('Error al cargar cursos:', error)
-    }
-  }
-
-  const cargarTutores = async () => {
-    try {
-      const res = await fetch('/api/edicionescursos/selectores/tutores')
-      const data = await res.json()
-      setTutores(data)
-    } catch (error) {
-      console.error('Error al cargar tutores:', error)
-    }
-  }
-
-  const calcularHoras = () => {
-    if (!formData.fecha_inicio || !formData.fecha_fin || !formData.curso_id) {
-      setHorasCalculadas(0)
-      setErrorHoras('')
-      return
-    }
-
-    const cursoSeleccionado = cursos.find(c => c.id === parseInt(formData.curso_id))
-    if (!cursoSeleccionado) return
-
-    const inicio = new Date(formData.fecha_inicio + 'T00:00:00')
-    const fin = new Date(formData.fecha_fin + 'T00:00:00')
-
-    if (fin < inicio) {
-      setErrorHoras('La fecha de fin debe ser posterior a la de inicio')
-      setHorasCalculadas(0)
-      return
-    }
-
-    let diasLaborables = 0
-    let fechaActual = new Date(inicio)
-
-    while (fechaActual <= fin) {
-      const diaSemana = fechaActual.getDay()
-      if (diaSemana !== 0 && diaSemana !== 6) {
-        diasLaborables++
-      }
-      fechaActual.setDate(fechaActual.getDate() + 1)
-    }
-
-    const horasTotales = diasLaborables * 5
-    setHorasCalculadas(horasTotales)
-
-    // Verificar si hay un curso seleccionado con duración
-    const duracionCurso = cursoSeleccionado.duracion_horas || 0
-    if (duracionCurso > 0) {
-      const diferencia = Math.abs(horasTotales - duracionCurso)
-      if (diferencia > 25) {
-        setErrorHoras(`⚠️ Diferencia de ${diferencia} horas (máximo permitido: 25h)`)
-      } else {
-        setErrorHoras('')
-      }
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const verificarConflictos = async (alumnoId: number): Promise<string | null> => {
+    if (!edicionInfo) return null
     
-    if (errorHoras && errorHoras.includes('⚠️')) {
-      setMensaje('❌ La diferencia de horas excede el máximo permitido (25h)')
+    try {
+      // Obtener todas las matrículas del alumno
+      const resMatriculas = await fetch('/api/matriculasalumnos')
+      const todasMatriculas = await resMatriculas.json()
+      
+      const matriculasAlumno = todasMatriculas.filter(
+        (m: Matricula) => m.alumno_id === alumnoId && m.activo
+      )
+      
+      // Verificar conflictos con otras ediciones
+      for (const matricula of matriculasAlumno) {
+        if (matricula.ediciones_cursos_id === parseInt(edicionSeleccionada)) continue
+        
+        const resEdicion = await fetch(`/api/edicionescursos/${matricula.ediciones_cursos_id}`)
+        const edicion = await resEdicion.json()
+        
+        // Verificar si es la misma fecha de inicio, fecha fin y mismo tutor
+        if (
+          edicion.fecha_inicio === edicionInfo.fecha_inicio &&
+          edicion.fecha_fin === edicionInfo.fecha_fin &&
+          edicion.tutor_id === edicionInfo.tutor_id
+        ) {
+          const alumno = alumnos.find(a => a.id === alumnoId)
+          return `${alumno?.nombre} ${alumno?.apellidos} ya está matriculado en otra edición con las mismas fechas y tutor`
+        }
+      }
+      
+      return null
+    } catch (error) {
+      console.error('Error al verificar conflictos:', error)
+      return null
+    }
+  }
+
+  const handleToggleAlumno = (alumnoId: number) => {
+    setAlumnosSeleccionados(prev => {
+      if (prev.includes(alumnoId)) {
+        return prev.filter(id => id !== alumnoId)
+      } else {
+        return [...prev, alumnoId]
+      }
+    })
+  }
+
+  const handleToggleTodos = () => {
+    const alumnosDisponibles = getAlumnosDisponibles()
+    if (alumnosSeleccionados.length === alumnosDisponibles.length) {
+      setAlumnosSeleccionados([])
+    } else {
+      setAlumnosSeleccionados(alumnosDisponibles.map(a => a.id))
+    }
+  }
+
+  const getAlumnosDisponibles = () => {
+    const idsMatriculados = matriculas.map(m => m.alumno_id)
+    return alumnos.filter(alumno => !idsMatriculados.includes(alumno.id))
+  }
+
+  const handleMatricular = async () => {
+    if (!edicionSeleccionada) {
+      setMensaje('❌ Selecciona una edición de curso')
       setTimeout(() => setMensaje(''), 3000)
       return
     }
 
-    try {
-      if (editando) {
-        const res = await fetch(`/api/edicionescursos/${editando}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        })
-        
-        if (!res.ok) {
-          const error = await res.json()
-          setMensaje(error.error || 'Error al actualizar edición')
-          setTimeout(() => setMensaje(''), 3000)
-          return
+    if (alumnosSeleccionados.length === 0) {
+      setMensaje('❌ Selecciona al menos un alumno')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+
+    // Verificar límite de alumnos
+    const maximoAlumnos = edicionInfo?.maximo_alumnos || 0
+    if (maximoAlumnos > 0) {
+      const totalDespuesMatricula = matriculas.length + alumnosSeleccionados.length
+      if (totalDespuesMatricula > maximoAlumnos) {
+        setMensaje(`❌ Excede el máximo de alumnos permitidos (${maximoAlumnos}). Actual: ${matriculas.length}, Intentando agregar: ${alumnosSeleccionados.length}`)
+        setTimeout(() => setMensaje(''), 5000)
+        return
+      }
+    }
+
+    setCargando(true)
+    let errores: string[] = []
+    let exitosos = 0
+
+    for (const alumnoId of alumnosSeleccionados) {
+      try {
+        // Verificar conflictos
+        const conflicto = await verificarConflictos(alumnoId)
+        if (conflicto) {
+          errores.push(conflicto)
+          continue
         }
-        
-        setMensaje('✅ Edición actualizada correctamente')
-      } else {
-        const res = await fetch('/api/edicionescursos', {
+
+        const res = await fetch('/api/matriculasalumnos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({
+            ediciones_cursos_id: parseInt(edicionSeleccionada),
+            activo: true,
+            alumno_id: alumnoId
+          })
         })
-        
+
         if (!res.ok) {
           const error = await res.json()
-          setMensaje(error.error || 'Error al crear edición')
-          setTimeout(() => setMensaje(''), 3000)
-          return
+          const alumno = alumnos.find(a => a.id === alumnoId)
+          errores.push(`${alumno?.nombre} ${alumno?.apellidos}: ${error.error}`)
+        } else {
+          exitosos++
         }
-        
-        setMensaje('✅ Edición creada correctamente')
+      } catch (error) {
+        const alumno = alumnos.find(a => a.id === alumnoId)
+        errores.push(`${alumno?.nombre} ${alumno?.apellidos}: Error al matricular`)
       }
-      
-      setFormData({ curso_id: '', activo: true, fecha_inicio: '', fecha_fin: '', tutor_id: '' })
-      setEditando(null)
-      setHorasCalculadas(0)
-      setErrorHoras('')
-      cargarEdiciones()
-      setTimeout(() => setMensaje(''), 3000)
-    } catch (error) {
-      console.error('Error:', error)
-      setMensaje('❌ Error al guardar edición')
-      setTimeout(() => setMensaje(''), 3000)
     }
+
+    setCargando(false)
+    
+    if (exitosos > 0) {
+      setMensaje(`✅ ${exitosos} alumno(s) matriculado(s) correctamente`)
+      setAlumnosSeleccionados([])
+      cargarMatriculas()
+    }
+    
+    if (errores.length > 0) {
+      setTimeout(() => {
+        setMensaje(`⚠️ Errores: ${errores.join(' | ')}`)
+      }, exitosos > 0 ? 3000 : 0)
+    }
+    
+    setTimeout(() => setMensaje(''), 8000)
   }
 
-  const editar = (edicion: EdicionCurso) => {
-
-    const fechaInicio = edicion.fecha_inicio.substring(0, 10)
-    const fechaFin = edicion.fecha_fin.substring(0, 10)
-    
-    setFormData({
-      curso_id: edicion.curso_id.toString(),
-      activo: edicion.activo,
-      fecha_inicio: fechaInicio,
-      fecha_fin: fechaFin,
-      tutor_id: edicion.tutor_id.toString()
-    })
-    setEditando(edicion.id)
-  }
-
-  const eliminar = async (id: number) => {
-    if (!confirm('¿Seguro que deseas eliminar esta edición de curso?')) return
-    
+  const toggleActivo = async (id: number, matricula: Matricula) => {
     try {
-      const res = await fetch(`/api/edicionescursos/${id}`, { method: 'DELETE' })
-      const data = await res.json()
-      
+      const res = await fetch(`/api/matriculasalumnos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ediciones_cursos_id: matricula.ediciones_cursos_id,
+          activo: !matricula.activo,
+          alumnos_id: matricula.alumno_id
+        })
+      })
+
       if (!res.ok) {
-        setMensaje(data.error || '❌ Error al eliminar edición')
+        const error = await res.json()
+        setMensaje(error.error || '❌ Error al actualizar estado')
         setTimeout(() => setMensaje(''), 3000)
         return
       }
-      
-      setMensaje('✅ Edición eliminada correctamente')
-      cargarEdiciones()
+
+      setMensaje('✅ Estado actualizado')
+      cargarMatriculas()
       setTimeout(() => setMensaje(''), 3000)
     } catch (error) {
       console.error('Error:', error)
-      setMensaje('❌ Error al eliminar edición')
+      setMensaje('❌ Error al actualizar estado')
       setTimeout(() => setMensaje(''), 3000)
     }
   }
 
-  const cancelar = () => {
-    setFormData({ curso_id: '', activo: true, fecha_inicio: '', fecha_fin: '', tutor_id: '' })
-    setEditando(null)
-    setHorasCalculadas(0)
-    setErrorHoras('')
+  const eliminarMatricula = async (id: number, nombreCompleto: string) => {
+    if (!confirm(`¿Seguro que deseas eliminar la matrícula de ${nombreCompleto}?`)) return
+
+    try {
+      const res = await fetch(`/api/matriculasalumnos/${id}`, { method: 'DELETE' })
+      
+      if (!res.ok) {
+        const error = await res.json()
+        setMensaje(error.error || '❌ Error al eliminar matrícula')
+        setTimeout(() => setMensaje(''), 3000)
+        return
+      }
+
+      setMensaje('✅ Matrícula eliminada correctamente')
+      cargarMatriculas()
+      setTimeout(() => setMensaje(''), 3000)
+    } catch (error) {
+      console.error('Error:', error)
+      setMensaje('❌ Error al eliminar matrícula')
+      setTimeout(() => setMensaje(''), 3000)
+    }
   }
+
+  const alumnosDisponibles = getAlumnosDisponibles()
+  const todosSeleccionados = alumnosDisponibles.length > 0 && 
+    alumnosSeleccionados.length === alumnosDisponibles.length
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">📚 Gestión de Ediciones de Cursos</h2>
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center z-10">
+          <h2 className="text-2xl font-bold text-gray-800">🎓 Matrícula de Alumnos</h2>
           <button
             onClick={onCerrar}
             className="text-gray-500 hover:text-gray-700 text-3xl font-bold leading-none"
@@ -273,189 +333,172 @@ function MatriculasAlumnos({ onCerrar }: MatriculaAlumnoProps) {
             <div className={`mb-4 p-3 rounded text-sm font-medium ${
               mensaje.includes('❌') || mensaje.includes('Error')
                 ? 'bg-red-100 border border-red-400 text-red-700'
+                : mensaje.includes('⚠️')
+                ? 'bg-yellow-100 border border-yellow-400 text-yellow-700'
                 : 'bg-green-100 border border-green-400 text-green-700'
             }`}>
               {mensaje}
             </div>
           )}
 
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          {/* Selección de Edición */}
+          <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
             <h3 className="text-lg font-semibold text-gray-700 mb-3">
-              {editando ? '✏️ Editar Edición' : '➕ Nueva Edición de Curso'}
+              📚 Paso 1: Selecciona la Edición del Curso
             </h3>
+            <select
+              value={edicionSeleccionada}
+              onChange={(e) => setEdicionSeleccionada(e.target.value)}
+              className="w-full border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Seleccionar edición de curso...</option>
+              {ediciones.map((edicion) => (
+                <option key={edicion.id} value={edicion.id}>
+                  {edicion.descripcion} - {new Date(edicion.fecha_inicio).toLocaleDateString('es-ES')} a {new Date(edicion.fecha_fin).toLocaleDateString('es-ES')}
+                </option>
+              ))}
+            </select>
+            
+            {edicionInfo && edicionInfo.maximo_alumnos && (
+              <div className="mt-2 text-sm text-gray-600">
+                📊 Plazas: {matriculas.length} / {edicionInfo.maximo_alumnos} ocupadas
+              </div>
+            )}
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Curso *</label>
-                  <select
-                    value={formData.curso_id}
-                    onChange={(e) => setFormData({ ...formData, curso_id: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">Seleccionar curso...</option>
-                    {cursos.map((curso) => (
-                      <option key={curso.id} value={curso.id}>
-                        {curso.codigo} - {curso.descripcion}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tutor *</label>
-                  <select
-                    value={formData.tutor_id}
-                    onChange={(e) => setFormData({ ...formData, tutor_id: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">Seleccionar tutor...</option>
-                    {tutores.map((tutor) => (
-                      <option key={tutor.id} value={tutor.id}>
-                        {tutor.nombre} {tutor.apellidos}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center">
-                  <label className="inline-flex items-center cursor-pointer">
+          {/* Lista de Alumnos Disponibles */}
+          {edicionSeleccionada && (
+            <div className="bg-green-50 rounded-lg p-4 mb-6 border border-green-200">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold text-gray-700">
+                  👥 Paso 2: Selecciona Alumnos para Matricular
+                </h3>
+                {alumnosDisponibles.length > 0 && (
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.activo}
-                      onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
-                      className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer mr-2"
+                      checked={todosSeleccionados}
+                      onChange={handleToggleTodos}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer mr-2"
                     />
-                    <span className="text-sm font-medium text-gray-700">Activo</span>
+                    <span className="text-sm font-medium text-gray-700">Seleccionar todos</span>
                   </label>
-                </div>
+                )}
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio *</label>
-                  <input
-                    type="date"
-                    value={formData.fecha_inicio}
-                    onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
+              {alumnosDisponibles.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                  ✅ Todos los alumnos activos ya están matriculados en esta edición
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Fin *</label>
-                  <input
-                    type="date"
-                    value={formData.fecha_fin}
-                    onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Horas Calculadas</label>
-                  <div className={`w-full border rounded px-3 py-2 text-sm font-semibold ${
-                    errorHoras && errorHoras.includes('⚠️') 
-                      ? 'bg-red-50 border-red-300 text-red-700' 
-                      : 'bg-blue-50 border-blue-300 text-blue-700'
-                  }`}>
-                    {horasCalculadas} horas
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 bg-white rounded border border-gray-200">
+                    {alumnosDisponibles.map((alumno) => (
+                      <label
+                        key={alumno.id}
+                        className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer border border-transparent hover:border-gray-300 transition"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={alumnosSeleccionados.includes(alumno.id)}
+                          onChange={() => handleToggleAlumno(alumno.id)}
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer mr-2"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {alumno.apellidos}, {alumno.nombre}
+                        </span>
+                      </label>
+                    ))}
                   </div>
-                  {errorHoras && (
-                    <p className={`text-xs mt-1 ${
-                      errorHoras.includes('⚠️') ? 'text-red-600' : 'text-gray-600'
-                    }`}>
-                      {errorHoras}
-                    </p>
-                  )}
-                </div>
-              </div>
 
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm rounded transition font-medium"
-                >
-                  {editando ? '💾 Actualizar' : '➕ Crear Edición'}
-                </button>
-                {editando && (
-                  <button
-                    type="button"
-                    onClick={cancelar}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 text-sm rounded transition font-medium"
-                  >
-                    ❌ Cancelar
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-sm text-gray-600">
+                      {alumnosSeleccionados.length} alumno(s) seleccionado(s)
+                    </span>
+                    <button
+                      onClick={handleMatricular}
+                      disabled={cargando || alumnosSeleccionados.length === 0}
+                      className={`px-6 py-2 rounded font-medium transition ${
+                        cargando || alumnosSeleccionados.length === 0
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-green-500 hover:bg-green-600 text-white'
+                      }`}
+                    >
+                      {cargando ? '⏳ Matriculando...' : '✅ Matricular Seleccionados'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Curso</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Tutor</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Fecha Inicio</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Fecha Fin</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Activo</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {ediciones.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                      📭 No hay ediciones registradas
-                    </td>
-                  </tr>
-                ) : (
-                  ediciones.map((edicion) => (
-                    <tr key={edicion.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{edicion.id}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{edicion.curso_descripcion}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {edicion.tutor_nombre} {edicion.tutor_apellidos}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(edicion.fecha_inicio).toLocaleDateString('es-ES')}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(edicion.fecha_fin).toLocaleDateString('es-ES')}
-                      </td>
-                      <td className="px-4 py-3">
-                        <input type="checkbox" checked={edicion.activo} readOnly />
-                      </td>
-                      <td className="px-4 py-3 text-sm whitespace-nowrap">
-                        <button
-                          onClick={() => editar(edicion)}
-                          className="text-blue-600 hover:text-blue-900 mr-3 text-lg"
-                          title="Editar edición"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => eliminar(edicion.id)}
-                          className="text-red-600 hover:text-red-900 text-lg"
-                          title="Eliminar edición"
-                        >
-                          🗑️
-                        </button>
-                      </td>
+          {/* Tabla de Alumnos Matriculados */}
+          {edicionSeleccionada && (
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                📋 Alumnos Matriculados ({matriculas.length})
+              </h3>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Apellidos y Nombre</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Estado</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Acciones</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {matriculas.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                          📭 No hay alumnos matriculados en esta edición
+                        </td>
+                      </tr>
+                    ) : (
+                      matriculas.map((matricula) => (
+                        <tr key={matricula.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-900 font-medium">{matricula.id}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {matricula.alumno_apellidos}, {matricula.alumno_nombre}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => toggleActivo(matricula.id, matricula)}
+                              className={`px-3 py-1 rounded text-xs font-semibold transition ${
+                                matricula.activo
+                                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                  : 'bg-red-100 text-red-700 hover:bg-red-200'
+                              }`}
+                            >
+                              {matricula.activo ? '✓ Activo' : '✗ Inactivo'}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-sm whitespace-nowrap">
+                            <button
+                              onClick={() => eliminarMatricula(
+                                matricula.id, 
+                                `${matricula.alumno_nombre} ${matricula.alumno_apellidos}`
+                              )}
+                              className="text-red-600 hover:text-red-900 text-lg"
+                              title="Eliminar matrícula"
+                            >
+                              🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-export default EdicionesCursos
+export default MatriculasAlumnos

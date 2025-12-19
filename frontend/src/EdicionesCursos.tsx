@@ -7,6 +7,7 @@ interface EdicionCurso {
   fecha_inicio: string
   fecha_fin: string
   tutor_id: number
+  maximo_alumnos: number
   curso_descripcion?: string
   tutor_nombre?: string
   tutor_apellidos?: string
@@ -40,7 +41,8 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
     activo: true,
     fecha_inicio: '',
     fecha_fin: '',
-    tutor_id: ''
+    tutor_id: '',
+    maximo_alumnos:''
   })
   const [editando, setEditando] = useState<number | null>(null)
   const [mensaje, setMensaje] = useState('')
@@ -196,7 +198,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
         setMensaje('✅ Edición creada correctamente')
       }
       
-      setFormData({ curso_id: '', activo: true, fecha_inicio: '', fecha_fin: '', tutor_id: '' })
+      setFormData({ curso_id: '', activo: true, fecha_inicio: '', fecha_fin: '', tutor_id: '', maximo_alumnos:'' })
       setEditando(null)
       setHorasCalculadas(0)
       setErrorHoras('')
@@ -219,7 +221,8 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
       activo: edicion.activo,
       fecha_inicio: fechaInicio,
       fecha_fin: fechaFin,
-      tutor_id: edicion.tutor_id.toString()
+      tutor_id: edicion.tutor_id.toString(),
+      maximo_alumnos: edicion.maximo_alumnos.toString()
     })
     setEditando(edicion.id)
   }
@@ -248,7 +251,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
   }
 
   const cancelar = () => {
-    setFormData({ curso_id: '', activo: true, fecha_inicio: '', fecha_fin: '', tutor_id: '' })
+    setFormData({ curso_id: '', activo: true, fecha_inicio: '', fecha_fin: '', tutor_id: '', maximo_alumnos:'' })
     setEditando(null)
     setHorasCalculadas(0)
     setErrorHoras('')
@@ -352,6 +355,16 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
                     required
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Maximo Alumnos</label>
+                  <input
+                    type="number"
+                    value={formData.maximo_alumnos}
+                    onChange={(e) => setFormData({ ...formData, maximo_alumnos: e.target.value })}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Horas Calculadas</label>
@@ -402,6 +415,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Fecha Inicio</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Fecha Fin</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Activo</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">MaximoAlumnos</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Acciones</th>
                 </tr>
               </thead>
@@ -428,6 +442,9 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
                       </td>
                       <td className="px-4 py-3">
                         <input type="checkbox" checked={edicion.activo} readOnly />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {edicion.maximo_alumnos.toString()}
                       </td>
                       <td className="px-4 py-3 text-sm whitespace-nowrap">
                         <button
