@@ -142,11 +142,17 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
           {mensaje && <div className="mb-4 p-3 bg-gray-100 rounded">{mensaje}</div>}
 
           {/* FORMULARIO */}
+          
           <div ref={formRef} className="bg-gray-50 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold mb-3">
               {editando ? '✏️ Editar Documento' : '➕ Nuevo Documento'}
             </h3>
-
+            <button
+                  onClick={cargarPDFs}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                  📄 Cargar PDFs
+            </button>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <input className="input" placeholder="Enlace" value={formData.enlace}
                 onChange={e => setFormData({ ...formData, enlace: e.target.value })} required />
@@ -212,21 +218,41 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
 
           {/* TABLA */}
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <tbody>
-                {documentosFiltrados.map(doc => (
-                  <tr key={doc.id}>
-                    <td>{doc.id}</td>
-                    <td>{doc.enlace}</td>
-                    <td>{doc.tema}</td>
-                    <td>{doc.curso}</td>
-                    <td>{doc.autor}</td>
-                    <td>
-                      <button onClick={() => editar(doc)}>✏️</button>
-                      <button onClick={() => eliminar(doc.id)}>🗑️</button>
+            <table className="w-full border-collapse">
+               <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Enlace</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Tema</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Curso</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Autor</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Activo</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Acciones</th>
+                </tr>
+              </thead>
+              <tbody  className="divide-y divide-gray-200">
+                {documentosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                      📭 No hay resultados con ese filtro
                     </td>
                   </tr>
-                ))}
+                ) : (documentosFiltrados.map(doc => (
+                  <tr key={doc.id} className="hover:bg-gray-50">
+                   
+                    <td  className="px-4 py-3 text-sm text-gray-900"><a href={doc.enlace} target="_blank" rel="noreferrer">{doc.enlace}</a></td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{doc.tema}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{doc.curso}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{doc.autor}</td>
+                    <td className="h-5 w-5">
+                            <input type="checkbox" checked={doc.activo} readOnly/>
+                    </td>
+                    <td px-4 py-3 text-sm whitespace-nowrap>
+                      <button onClick={() => editar(doc)} className="text-blue-600 hover:text-blue-900 mr-3 text-lg">✏️</button>
+                    
+                      <button onClick={() => eliminar(doc.id)} className="text-blue-600 hover:text-blue-900 mr-3 text-lg">🗑️</button>
+                    </td>
+                  </tr>
+                )))}
               </tbody>
             </table>
           </div>

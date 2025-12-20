@@ -231,7 +231,7 @@ function Tutores({ onCerrar }: TutoresProps) {
                   onChange={(e) => setFormData({ ...formData, especialidad: e.target.value })}
                   className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   
-                >
+                > <option value="">elige opcion</option>
                   <option value="informatica">Informática</option>
                   <option value="ingles">Inglés</option>
                   <option value="apoyo">Apoyo Escolar</option>

@@ -68,86 +68,85 @@ function App() {
       {mostrarMatriculasAlumnos && <MatriculasAlumnos onCerrar={() => setMostrarMatriculasAlumnos(false)} />}  
       <div className="max-w-7xl mx-auto">
 
-       {/* HEADER */}
-<div className="mb-6">
-  <div className="flex flex-wrap items-center justify-between gap-4">
+  {/* HEADER SUPERIOR */}
+  <div className="mb-8 flex items-center justify-between border-b pb-4">
 
-    {/* IZQUIERDA – TÍTULO */}
-    <h1 className="text-3xl font-bold text-gray-800 whitespace-nowrap">
+    <h2 className="text-3xl font-bold text-gray-800">
       📚 Gestión de Cursos
-    </h1>
+    </h2>
 
-    {/* CENTRO – NAVEGACIÓN */}
-    <div className="flex flex-wrap gap-2 justify-center">
-      <button
-        onClick={() => setMostrarDocumentacion(true)}
-        className="bg-orange-400 hover:bg-orange-500 btn"
-      >
-        📖 Material educativo
-      </button>
-
-      <button
-        onClick={() => setMostrarAlumnos(true)}
-        className="bg-blue-400 hover:bg-blue-500 btn"
-      >
-        👩‍🎓 Alumnos
-      </button>
-
-      <button
-        onClick={() => setMostrarTutores(true)}
-        className="bg-yellow-400 hover:bg-yellow-500 btn"
-      >
-        🧑‍🏫 Tutores
-      </button>
-
-      <button
-        onClick={() => setMostrarCursos(true)}
-        className="bg-green-500 hover:bg-green-600 btn"
-      >
-        🎓 Cursos
-      </button>
-      <button
-        onClick={() => setMostrarEdicionesCursos(true)}
-        className="bg-green-500 hover:bg-green-600 btn"
-      >
-        🎓 Ediciones de Cursos
-      </button>
-      <button
-        onClick={() => setMostrarMatriculasAlumnos(true)}
-        className="bg-green-500 hover:bg-green-600 btn"
-      >
-        📋 Matricular Alumnos
-      </button>
-
-
-      <button
-        onClick={() => setMostrarUsuarios(true)}
-        className="bg-pink-500 hover:bg-pink-600 btn"
-      >
-        👥 Usuarios
-      </button>
-    </div>
-
-    {/* DERECHA – USUARIO */}
-    <div className="flex items-center gap-3 whitespace-nowrap">
+    <div className="flex items-center gap-4 w-full max-w-xs">
       <span className="text-sm text-gray-600">
         👤 {usuario?.email}
       </span>
 
       <button
         onClick={handleLogout}
-        className="bg-red-500 hover:bg-red-600 btn"
+        className="bg-slate-400 hover:bg-slate-500 btn rounded-xl  text-lg py-1 px-10"
       >
         ⏻ Salir
       </button>
     </div>
 
   </div>
+
+  {/* MENÚ VERTICAL CENTRAL */}
+  <div className="flex justify-center">
+    <div className="flex flex-col gap-3 w-full max-w-xs">
+      <button
+        onClick={() => setMostrarDocumentacion(true)}
+        className="bg-blue-400 hover:bg-blue-500 btn rounded-xl text-lg py-2 text-left flex items-center px-4"
+      >
+        📖 Material educativo
+      </button>
+
+      <button
+        onClick={() => setMostrarAlumnos(true)}
+        className="bg-red-400 hover:bg-red-500 btn rounded-xl text-lg py-2 text-left flex items-center px-4"
+      >
+        👩‍🎓 Alumnos
+      </button>
+
+      <button
+        onClick={() => setMostrarTutores(true)}
+        className="bg-green-400 hover:bg-green-500 btn rounded-xl text-lg py-2 text-left flex items-center px-4"
+      >
+        🧑‍🏫 Tutores
+      </button>
+
+      <button
+        onClick={() => setMostrarCursos(true)}
+        className="bg-yellow-400 hover:bg-yellow-500 btn rounded-xl text-lg py-2 text-left flex items-center px-4"
+      >
+        🎓 Cursos
+      </button>
+
+      <button
+        onClick={() => setMostrarEdicionesCursos(true)}
+        className="bg-indigo-400 hover:bg-indigo-500 btn rounded-xl text-lg py-2 text-left flex items-center px-4"
+      >
+        🎓 Ediciones de Cursos
+      </button>
+
+      <button
+        onClick={() => setMostrarMatriculasAlumnos(true)}
+        className="bg-lime-400 hover:bg-lime-500 btn rounded-xl text-lg py-2 text-left flex items-center px-4"
+      >
+        📋 Matricular Alumnos
+      </button>
+
+      <button
+        onClick={() => setMostrarUsuarios(true)}
+        className="bg-zinc-400 hover:bg-zinc-500 btn rounded-xl text-lg py-2 text-left flex items-center px-4"
+      >
+        👥 Usuarios
+      </button>
+
+    </div>
+  </div>
+
 </div>
 
-
-
-      </div>
     </div>
   )
 }
