@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuthFetch } from './hooks/useAuthFetch'
 
 interface Curso {
   id: number
@@ -17,7 +18,7 @@ interface CursosProps {
 
 function Cursos({ onCerrar }: CursosProps) {
   console.log('🔵 Componente Cursos montado')
-  
+  const authFetch = useAuthFetch()
   const [cursos, setCursos] = useState<Curso[]>([])
   const [formData, setFormData] = useState({
     codigo: '',
@@ -36,7 +37,7 @@ function Cursos({ onCerrar }: CursosProps) {
 
   const cargarCursos = async () => {
     try {
-      const res = await fetch('/api/Cursos')
+      const res = await authFetch('/api/Cursos')
       const data = await res.json()
       setCursos(data)
     } catch (error) {
@@ -51,7 +52,7 @@ function Cursos({ onCerrar }: CursosProps) {
     try {
       if (editando) {
         // Actualizar curso existente
-        const res = await fetch(`/api/cursos/${editando}`, {
+        const res = await authFetch(`/api/cursos/${editando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -67,7 +68,7 @@ function Cursos({ onCerrar }: CursosProps) {
         setMensaje('✅ Curso actualizado correctamente')
       } else {
         // Crear nuevo curso
-        const res = await fetch('/api/cursos', {
+        const res = await authFetch('/api/cursos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)

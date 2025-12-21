@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-
+import { useAuthFetch } from './hooks/useAuthFetch'
 interface Documento {
   id: number
   enlace: string
@@ -17,6 +17,8 @@ interface DocumentacionProps {
 function Documentacion({ onCerrar }: DocumentacionProps) {
   console.log('🔵 Componente Documentacion montado')
 
+  const authFetch = useAuthFetch()
+  
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [formData, setFormData] = useState({
     enlace: '',
@@ -44,9 +46,16 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
 
   const cargarDocumentos = async () => {
     try {
-      const res = await fetch('/api/documentos')
+      //const res = await fetch('/api/documentos')
+      const res = await authFetch('/api/documentos')
+        if (!res.ok) {
+          setMensaje('❌ Error al cargar documentos')
+        return
+        }
+
       const data = await res.json()
-      setDocumentos(data)
+      //setDocumentos(data)
+      setDocumentos(Array.isArray(data) ? data : []) 
     } catch {
       setMensaje('❌ Error al cargar documentos')
     }
@@ -54,7 +63,7 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
 
   const cargarPDFs = async () => {
     try {
-      const res = await fetch('/api/cargar-pdfs', { method: 'POST' })
+      const res = await authFetch('/api/cargar-pdfs', { method: 'POST' })
       const data = await res.json()
       setMensaje(data.mensaje || '📄 PDFs cargados')
       cargarDocumentos()
@@ -70,7 +79,7 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
     const url = editando ? `/api/documentos/${editando}` : '/api/documentos'
     const method = editando ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
+    const res = await authFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -105,7 +114,7 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
 
   const eliminar = async (id: number) => {
     if (!confirm('¿Eliminar este documento?')) return
-    await fetch(`/api/documentos/${id}`, { method: 'DELETE' })
+    await authFetch(`/api/documentos/${id}`, { method: 'DELETE' })
     cargarDocumentos()
   }
 
@@ -246,7 +255,7 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
                     <td className="h-5 w-5">
                             <input type="checkbox" checked={doc.activo} readOnly/>
                     </td>
-                    <td px-4 py-3 text-sm whitespace-nowrap>
+                    <td className="px-4 py-3 text-sm whitespace-nowrap">
                       <button onClick={() => editar(doc)} className="text-blue-600 hover:text-blue-900 mr-3 text-lg">✏️</button>
                     
                       <button onClick={() => eliminar(doc.id)} className="text-blue-600 hover:text-blue-900 mr-3 text-lg">🗑️</button>

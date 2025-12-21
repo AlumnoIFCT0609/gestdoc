@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuthFetch } from './hooks/useAuthFetch'
 
 interface Alumno {
   id: number
@@ -19,6 +20,7 @@ interface AlumnosProps {
 
 function Alumnos({ onCerrar }: AlumnosProps) {
   console.log('🔵 Componente Alumnos montado')
+  const authFetch = useAuthFetch()
   
   const [alumnos, setAlumnos] = useState<Alumno[]>([])
   const [formData, setFormData] = useState({
@@ -40,10 +42,17 @@ function Alumnos({ onCerrar }: AlumnosProps) {
 
   const cargarAlumnos = async () => {
     try {
-      const res = await fetch('/api/alumnos')
+     // const res = await fetch('/api/alumnos')
+      const res = await authFetch('/api/alumnos')
+        if (!res.ok) {
+          setMensaje('❌ Error al cargar alumnos')
+        return
+        }
       const data = await res.json()
-      setAlumnos(data)
+       setAlumnos(Array.isArray(data) ? data : []) 
+      //setAlumnos(data)
     } catch (error) {
+
       console.error('Error al cargar alumnos:', error)
       setMensaje('Error al cargar alumnos')
     }
@@ -55,7 +64,7 @@ function Alumnos({ onCerrar }: AlumnosProps) {
     try {
       if (editando) {
         // Actualizar alumno existente
-        const res = await fetch(`/api/alumnos/${editando}`, {
+        const res = await authFetch(`/api/alumnos/${editando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -71,7 +80,7 @@ function Alumnos({ onCerrar }: AlumnosProps) {
         setMensaje('✅ Alumno actualizado correctamente')
       } else {
         // Crear nuevo alumnoo
-        const res = await fetch('/api/alumnos', {
+        const res = await authFetch('/api/alumnos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -124,7 +133,7 @@ function Alumnos({ onCerrar }: AlumnosProps) {
     if (!confirm('¿Seguro que deseas eliminar este alumno?')) return
     
     try {
-      const res = await fetch(`/api/alumnos/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/alumnos/${id}`, { method: 'DELETE' })
       const data = await res.json()
       
       if (!res.ok) {

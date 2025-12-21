@@ -37,7 +37,7 @@ router.post('/usuarios', async (req, res) => {
     
     const result = await pool.query(
       'INSERT INTO usuarios (email, password, rol, activo) VALUES ($1, $2, $3, $4) RETURNING id, email, rol, activo, fecha_creacion',
-      [email, hashedPassword, rol || 'admin']
+      [email, hashedPassword, rol || 'admin',activo]
     )
     res.json(result.rows[0])
   } catch (error) {

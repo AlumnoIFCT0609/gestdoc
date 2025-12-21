@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuthFetch } from './hooks/useAuthFetch'
 
 interface Usuario {
   id: number
@@ -14,7 +15,7 @@ interface UsuariosProps {
 
 function Usuarios({ onCerrar }: UsuariosProps) {
   console.log('🔵 Componente Usuarios montado')
-  
+  const authFetch = useAuthFetch()
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [formData, setFormData] = useState({
     email: '',
@@ -30,9 +31,10 @@ function Usuarios({ onCerrar }: UsuariosProps) {
 
   const cargarUsuarios = async () => {
     try {
-      const res = await fetch('/api/usuarios')
+      const res = await authFetch('/api/usuarios')
       const data = await res.json()
-      setUsuarios(data)
+      //setUsuarios(data)
+      setUsuarios(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error al cargar usuarios:', error)
       setMensaje('Error al cargar usuarios')
@@ -45,7 +47,7 @@ function Usuarios({ onCerrar }: UsuariosProps) {
     try {
       if (editando) {
         // Actualizar usuario existente
-        const res = await fetch(`/api/usuarios/${editando}`, {
+        const res = await authFetch(`/api/usuarios/${editando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -61,7 +63,7 @@ function Usuarios({ onCerrar }: UsuariosProps) {
         setMensaje('✅ Usuario actualizado correctamente')
       } else {
         // Crear nuevo usuario
-        const res = await fetch('/api/usuarios', {
+        const res = await authFetch('/api/usuarios', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -101,7 +103,7 @@ function Usuarios({ onCerrar }: UsuariosProps) {
     if (!confirm('¿Seguro que deseas eliminar este usuario?')) return
     
     try {
-      const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/usuarios/${id}`, { method: 'DELETE' })
       const data = await res.json()
       
       if (!res.ok) {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuthFetch } from './hooks/useAuthFetch'
 
 interface Tutor {
   id: number
@@ -19,7 +20,7 @@ interface TutoresProps {
 
 function Tutores({ onCerrar }: TutoresProps) {
   console.log('🔵 Componente Tutores montado')
-  
+  const authFetch = useAuthFetch()
   const [tutores, setTutores] = useState<Tutor[]>([])
   const [formData, setFormData] = useState({
     nombre: '',
@@ -40,8 +41,14 @@ function Tutores({ onCerrar }: TutoresProps) {
 
   const cargarTutores = async () => {
     try {
-      const res = await fetch('/api/tutores')
+      const res = await authFetch('/api/tutores')
+       if (!res.ok) {
+          setMensaje('❌ Error al cargar tutores')
+        return
+        }
       const data = await res.json()
+      setTutores(Array.isArray(data) ? data : []) 
+
       setTutores(data)
     } catch (error) {
       console.error('Error al cargar tutores:', error)
@@ -55,7 +62,7 @@ function Tutores({ onCerrar }: TutoresProps) {
     try {
       if (editando) {
         // Actualizar Tutor existente
-        const res = await fetch(`/api/tutores/${editando}`, {
+        const res = await authFetch(`/api/tutores/${editando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -71,7 +78,7 @@ function Tutores({ onCerrar }: TutoresProps) {
         setMensaje('✅ Tutor actualizado correctamente')
       } else {
         // Crear nuevo Tutor
-        const res = await fetch('/api/tutores', {
+        const res = await authFetch('/api/tutores', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -124,7 +131,7 @@ function Tutores({ onCerrar }: TutoresProps) {
     if (!confirm('¿Seguro que deseas eliminar este tutor?')) return
     
     try {
-      const res = await fetch(`/api/tutores/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/tutores/${id}`, { method: 'DELETE' })
       const data = await res.json()
       
       if (!res.ok) {

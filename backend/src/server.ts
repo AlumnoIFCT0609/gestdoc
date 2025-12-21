@@ -4,7 +4,8 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { initDatabase } from './database.js'
 import routes from './routes.js'
-import authRoutes from './authRoutes.js'
+import authRoutes, { requireAuth } from './authRoutes.js'
+//import authRoutes from './authRoutes.js'
 import userRoutes from './userRoutes.js'
 import cursoRoutes from './cursoRoutes.js'
 import tutorRoutes from './tutorRoutes.js'
@@ -26,6 +27,10 @@ app.use('/docs', express.static(path.resolve(__dirname, '../../../docs')))
 
 // Rutas
 app.use('/api/auth', authRoutes)
+
+// APLICAR requireAuth a TODAS las demás rutas /api
+app.use('/api', requireAuth)
+
 app.use('/api', routes)
 app.use('/api', userRoutes)
 app.use('/api', cursoRoutes)
@@ -34,10 +39,10 @@ app.use('/api', alumnoRoutes)
 app.use('/api', edicionesCursosRoutes)
 app.use('/api', matriculasAlumnosRoutes)
 
-// Ruta de prueba
+/*/ Ruta de prueba
 app.get('/', (req, res) => {
   res.json({ mensaje: '🚀 Servidor funcionando correctamente' })
-})
+}) */
 
 // Iniciar servidor
 async function start() {

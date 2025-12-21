@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuthFetch } from './hooks/useAuthFetch'
 
 interface Matricula {
   id: number
@@ -31,7 +32,7 @@ interface MatriculasAlumnosProps {
 
 function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
   console.log('🔵 Componente MatriculasAlumnos montado')
-  
+  const authFetch = useAuthFetch()
   const [edicionSeleccionada, setEdicionSeleccionada] = useState<string>('')
   const [ediciones, setEdiciones] = useState<EdicionCurso[]>([])
   const [alumnos, setAlumnos] = useState<Alumno[]>([])
@@ -59,7 +60,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
 
   const cargarEdiciones = async () => {
     try {
-      const res = await fetch('/api/matriculasalumnos/selectores/edicionescursos')
+      const res = await authFetch('/api/matriculasalumnos/selectores/edicionescursos')
       const data = await res.json()
       setEdiciones(data)
     } catch (error) {
@@ -69,7 +70,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
 
   const cargarAlumnos = async () => {
     try {
-      const res = await fetch('/api/matriculasalumnos/selectores/alumnos')
+      const res = await authFetch('/api/matriculasalumnos/selectores/alumnos')
       const data = await res.json()
       setAlumnos(data)
     } catch (error) {
@@ -81,7 +82,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
     if (!edicionSeleccionada) return
     
     try {
-      const res = await fetch(`/api/edicionescursos/${edicionSeleccionada}`)
+      const res = await authFetch(`/api/edicionescursos/${edicionSeleccionada}`)
       const data = await res.json()
       setEdicionInfo(data)
     } catch (error) {
@@ -93,7 +94,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
     if (!edicionSeleccionada) return
     
     try {
-      const res = await fetch('/api/matriculasalumnos')
+      const res = await authFetch('/api/matriculasalumnos')
       const data = await res.json()
       
       // Filtrar por edición seleccionada
@@ -104,7 +105,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
       // Cargar datos de alumnos
       const matriculasConDetalles = await Promise.all(
         matriculasFiltradas.map(async (matricula: Matricula) => {
-          const alumnoRes = await fetch(`/api/alumnos/${matricula.alumno_id}`)
+          const alumnoRes = await authFetch(`/api/alumnos/${matricula.alumno_id}`)
           const alumno = await alumnoRes.json()
           
           return {
@@ -126,7 +127,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
     
     try {
       // Obtener todas las matrículas del alumno
-      const resMatriculas = await fetch('/api/matriculasalumnos')
+      const resMatriculas = await authFetch('/api/matriculasalumnos')
       const todasMatriculas = await resMatriculas.json()
       
       const matriculasAlumno = todasMatriculas.filter(
@@ -137,7 +138,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
       for (const matricula of matriculasAlumno) {
         if (matricula.ediciones_cursos_id === parseInt(edicionSeleccionada)) continue
         
-        const resEdicion = await fetch(`/api/edicionescursos/${matricula.ediciones_cursos_id}`)
+        const resEdicion = await authFetch(`/api/edicionescursos/${matricula.ediciones_cursos_id}`)
         const edicion = await resEdicion.json()
         
         // Verificar si es la misma fecha de inicio, fecha fin y mismo tutor
@@ -219,7 +220,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
           continue
         }
 
-        const res = await fetch('/api/matriculasalumnos', {
+        const res = await authFetch('/api/matriculasalumnos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -261,7 +262,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
 
   const toggleActivo = async (id: number, matricula: Matricula) => {
     try {
-      const res = await fetch(`/api/matriculasalumnos/${id}`, {
+      const res = await authFetch(`/api/matriculasalumnos/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -292,7 +293,7 @@ function MatriculasAlumnos({ onCerrar }: MatriculasAlumnosProps) {
     if (!confirm(`¿Seguro que deseas eliminar la matrícula de ${nombreCompleto}?`)) return
 
     try {
-      const res = await fetch(`/api/matriculasalumnos/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/matriculasalumnos/${id}`, { method: 'DELETE' })
       
       if (!res.ok) {
         const error = await res.json()

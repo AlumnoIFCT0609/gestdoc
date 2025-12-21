@@ -1,3 +1,4 @@
+import { useAuthFetch } from './hooks/useAuthFetch'
 import { useState, useEffect } from 'react'
 
 interface EdicionCurso {
@@ -32,7 +33,7 @@ interface EdicionesCursosProps {
 
 function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
   console.log('🔵 Componente EdicionesCursos montado')
-  
+  const authFetch = useAuthFetch()
   const [ediciones, setEdiciones] = useState<EdicionCurso[]>([])
   const [cursos, setCursos] = useState<Curso[]>([])
   const [tutores, setTutores] = useState<Tutor[]>([])
@@ -61,15 +62,15 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
 
   const cargarEdiciones = async () => {
     try {
-      const res = await fetch('/api/edicionescursos')
+      const res = await authFetch('/api/edicionescursos')
       const data = await res.json()
       
       // Cargar datos relacionados para mostrar en la tabla
       const edicionesConDetalles = await Promise.all(
         data.map(async (edicion: EdicionCurso) => {
           const [cursoRes, tutorRes] = await Promise.all([
-            fetch(`/api/cursos/${edicion.curso_id}`),
-            fetch(`/api/tutores/${edicion.tutor_id}`)
+            authFetch(`/api/cursos/${edicion.curso_id}`),
+            authFetch(`/api/tutores/${edicion.tutor_id}`)
           ])
           
           const curso = await cursoRes.json()
@@ -93,7 +94,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
 
   const cargarCursos = async () => {
     try {
-      const res = await fetch('/api/edicionescursos/selectores/cursos')
+      const res = await authFetch('/api/edicionescursos/selectores/cursos')
       const data = await res.json()
       setCursos(data)
     } catch (error) {
@@ -103,7 +104,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
 
   const cargarTutores = async () => {
     try {
-      const res = await fetch('/api/edicionescursos/selectores/tutores')
+      const res = await authFetch('/api/edicionescursos/selectores/tutores')
       const data = await res.json()
       setTutores(data)
     } catch (error) {
@@ -167,7 +168,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
 
     try {
       if (editando) {
-        const res = await fetch(`/api/edicionescursos/${editando}`, {
+        const res = await authFetch(`/api/edicionescursos/${editando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -182,7 +183,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
         
         setMensaje('✅ Edición actualizada correctamente')
       } else {
-        const res = await fetch('/api/edicionescursos', {
+        const res = await authFetch('/api/edicionescursos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -231,7 +232,7 @@ function EdicionesCursos({ onCerrar }: EdicionesCursosProps) {
     if (!confirm('¿Seguro que deseas eliminar esta edición de curso?')) return
     
     try {
-      const res = await fetch(`/api/edicionescursos/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/edicionescursos/${id}`, { method: 'DELETE' })
       const data = await res.json()
       
       if (!res.ok) {
