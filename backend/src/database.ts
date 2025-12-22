@@ -166,7 +166,7 @@ export async function initDatabase() {
       
       await client.query(
         'INSERT INTO usuarios (email, password, rol) VALUES ($1, $2, $3)',
-        ['admin@admin.com', hashedPassword, 'admin']
+        ['admin@admin.com', hashedPassword, 'Admin']
       )
       console.log('✅ Usuario admin creado (email: admin@admin.com, pass: admin123)')
     } else {

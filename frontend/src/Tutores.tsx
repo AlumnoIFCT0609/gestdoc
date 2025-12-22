@@ -126,7 +126,63 @@ function Tutores({ onCerrar }: TutoresProps) {
     })
     setEditando(tutor.id)
   }
-
+  const crearUsuario = async (id: number) => {
+  if (!confirm('¿Seguro que deseas crear usuario para este tutor?')) return
+  
+  try {
+    // 1. Obtener los datos del alumno
+    const resTutor = await authFetch(`/api/tutores/${id}`)
+    const tutor = await resTutor.json()
+    
+    /*if (!tutor.email) {
+      setMensaje('❌ El tutor no tiene email registrado')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }*/
+    
+    // 2. Verificar si ya existe un usuario con ese email
+    const resUsuarios = await authFetch('/api/usuarios')
+    const usuarios = await resUsuarios.json()
+    
+    const usuarioExistente = usuarios.find((u: any) => u.email === tutor.email)
+    
+    if (usuarioExistente) {
+      setMensaje('⚠️ Ya existe un usuario con ese email')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+    
+    // 3. Crear el nuevo usuario
+    const nuevoUsuario = {
+      email: tutor.email,
+      password: tutor.dni,
+      rol: 'Tutor',
+      activo: true
+    }
+    
+    const resCrear = await authFetch('/api/usuarios', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(nuevoUsuario)
+    })
+    
+    if (resCrear.ok) {
+      setMensaje('✅ Usuario creado exitosamente')
+      setTimeout(() => setMensaje(''), 3000)
+    } else {
+      const error = await resCrear.json()
+      setMensaje(`❌ Error: ${error.message || 'No se pudo crear el usuario'}`)
+      setTimeout(() => setMensaje(''), 3000)
+    }
+    
+  } catch (error) {
+    console.error('Error:', error)
+    setMensaje('❌ Error al crear usuario para el tutor')
+    setTimeout(() => setMensaje(''), 3000)
+  }
+}
   const eliminar = async (id: number) => {
     if (!confirm('¿Seguro que deseas eliminar este tutor?')) return
     
@@ -336,6 +392,13 @@ function Tutores({ onCerrar }: TutoresProps) {
                           title="Eliminar tutor"
                         >
                           🗑️
+                        </button>
+                         <button
+                          onClick={() => crearUsuario(tutor.id)}
+                          className="text-red-600 hover:text-red-900 text-lg"
+                          title="Crear usuario"
+                        >
+                          👤
                         </button>
                       </td>
                     </tr>
