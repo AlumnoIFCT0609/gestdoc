@@ -128,6 +128,63 @@ function Alumnos({ onCerrar }: AlumnosProps) {
     })
     setEditando(alumno.id)
   }
+  const crearUsuario = async (id: number) => {
+  if (!confirm('¿Seguro que deseas crear usuario para este alumno?')) return
+  
+  try {
+    // 1. Obtener los datos del alumno
+    const resAlumno = await authFetch(`/api/alumnos/${id}`)
+    const alumno = await resAlumno.json()
+    
+    if (!alumno.email) {
+      setMensaje('❌ El alumno no tiene email registrado')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+    
+    // 2. Verificar si ya existe un usuario con ese email
+    const resUsuarios = await authFetch('/api/usuarios')
+    const usuarios = await resUsuarios.json()
+    
+    const usuarioExistente = usuarios.find((u: any) => u.email === alumno.email)
+    
+    if (usuarioExistente) {
+      setMensaje('⚠️ Ya existe un usuario con ese email')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+    
+    // 3. Crear el nuevo usuario
+    const nuevoUsuario = {
+      email: alumno.email,
+      password: alumno.dni,
+      rol: 'Alumno',
+      activo: true
+    }
+    
+    const resCrear = await authFetch('/api/usuarios', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(nuevoUsuario)
+    })
+    
+    if (resCrear.ok) {
+      setMensaje('✅ Usuario creado exitosamente')
+      setTimeout(() => setMensaje(''), 3000)
+    } else {
+      const error = await resCrear.json()
+      setMensaje(`❌ Error: ${error.message || 'No se pudo crear el usuario'}`)
+      setTimeout(() => setMensaje(''), 3000)
+    }
+    
+  } catch (error) {
+    console.error('Error:', error)
+    setMensaje('❌ Error al crear usuario para el alumno')
+    setTimeout(() => setMensaje(''), 3000)
+  }
+}
 
   const eliminar = async (id: number) => {
     if (!confirm('¿Seguro que deseas eliminar este alumno?')) return
@@ -339,6 +396,15 @@ function Alumnos({ onCerrar }: AlumnosProps) {
                         >
                           🗑️
                         </button>
+                         <button
+                          onClick={() => crearUsuario(alumno.id)}
+                          className="text-red-600 hover:text-red-900 text-lg"
+                          title="Crear usuario"
+                        >
+                          👤
+                        </button>
+
+
                       </td>
                     </tr>
                   ))
