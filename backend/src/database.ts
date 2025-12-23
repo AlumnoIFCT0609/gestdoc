@@ -1,53 +1,31 @@
 import pkg from 'pg'
 const { Pool, Client } = pkg
 
-// Primero conectamos a la BD postgres por defecto para crear nuestra BD
-async function createDatabaseIfNotExists() {
-  const client = new Client({
-    user: 'admin',
-    host: 'localhost',
-    database: 'postgres',
-    password: '1469Alw2018',
-    port: 5432,
-  })
+// Obtener DATABASE_URL de las variables de entorno
+const DATABASE_URL = process.env.DATABASE_URL
 
-  try {
-    await client.connect()
-    
-    // Verificar si la BD existe
-    const result = await client.query(
-      "SELECT 1 FROM pg_database WHERE datname = 'documentacion'"
-    )
-    
-    if (result.rows.length === 0) {
-      // Crear la base de datos
-      await client.query('CREATE DATABASE documentacion')
-      console.log('✅ Base de datos "documentacion" creada')
-    } else {
-      console.log('✅ Base de datos "documentacion" ya existe')
-    }
-  } catch (error) {
-    console.error('❌ Error al crear la base de datos:', error)
-    throw error
-  } finally {
-    await client.end()
-  }
-}
+// Si no existe DATABASE_URL, usar configuración local
+const isProduction = process.env.NODE_ENV === 'production'
 
-// Ahora el pool para conectar a nuestra BD
-const pool = new Pool({
-  user: 'admin',
-  host: 'localhost',
-  database: 'documentacion',
-  password: '1469Alw2018',
-  port: 5432,
-})
+// Configuración del pool
+const pool = new Pool(
+  isProduction
+    ? {
+        connectionString: DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }
+    : {
+        user: 'admin',
+        host: 'localhost',
+        database: 'documentacion',
+        password: '1469Alw2018',
+        port: 5432
+      }
+)
 
 export async function initDatabase() {
-  // Primero crear la BD si no existe
-  await createDatabaseIfNotExists()
-  
-  // Luego crear las tablas
   const client = await pool.connect()
   
   try {
@@ -94,7 +72,7 @@ export async function initDatabase() {
     `)
     console.log('✅ Tabla "cursos" lista')
 
-       // Tabla de Tutores
+    // Tabla de Tutores
     await client.query(`
       CREATE TABLE IF NOT EXISTS tutores (
         id SERIAL PRIMARY KEY,
@@ -111,7 +89,7 @@ export async function initDatabase() {
     `)
     console.log('✅ Tabla "tutores" lista')
 
-  // Tabla de Alumnos
+    // Tabla de Alumnos
     await client.query(`
       CREATE TABLE IF NOT EXISTS alumnos (
         id SERIAL PRIMARY KEY,
@@ -127,7 +105,8 @@ export async function initDatabase() {
       )
     `)
     console.log('✅ Tabla "alumnos" lista')
-    // Tabla de cursos
+
+    // Tabla de ediciones cursos
     await client.query(`
       CREATE TABLE IF NOT EXISTS edicionescursos (
         id SERIAL PRIMARY KEY,
@@ -141,7 +120,7 @@ export async function initDatabase() {
     `)
     console.log('✅ Tabla "edicionescursos" lista')
 
-      await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS matriculasalumnos (
         id SERIAL PRIMARY KEY,
         ediciones_cursos_id INTEGER NOT NULL REFERENCES edicionescursos(id) ON DELETE SET NULL,
@@ -151,8 +130,6 @@ export async function initDatabase() {
     `)
     console.log('✅ Tabla "matriculasalumnos" lista')
 
-
-
     // Verificar si ya existe el usuario admin
     const existeAdmin = await client.query(
       'SELECT id FROM usuarios WHERE email = $1',
@@ -160,7 +137,6 @@ export async function initDatabase() {
     )
     
     if (existeAdmin.rows.length === 0) {
-      // Crear usuario admin por defecto
       const bcrypt = await import('bcrypt')
       const hashedPassword = await bcrypt.hash('admin123', 10)
       
