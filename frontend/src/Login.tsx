@@ -11,35 +11,36 @@ function Login({ onLogin }: LoginProps) {
   const [cargando, setCargando] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setCargando(true)
+  e.preventDefault()
+  setError('')
+  setCargando(true)
 
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || ''
+    
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
 
-      const data = await res.json()
+    const data = await res.json()
 
-      if (!res.ok) {
-        setError(data.error || 'Error al iniciar sesión')
-        setCargando(false)
-        return
-      }
-
-      // Guardar token en sessionStorage (se borra al cerrar navegador)
-      sessionStorage.setItem('token', data.token)
-      sessionStorage.setItem('usuario', JSON.stringify(data.usuario))
-      
-      onLogin(data.token, data.usuario)
-    } catch (error) {
-      setError('Error de conexión')
+    if (!res.ok) {
+      setError(data.error || 'Error al iniciar sesión')
       setCargando(false)
+      return
     }
+
+    sessionStorage.setItem('token', data.token)
+    sessionStorage.setItem('usuario', JSON.stringify(data.usuario))
+    
+    onLogin(data.token, data.usuario)
+  } catch (error) {
+    setError('Error de conexión')
+    setCargando(false)
   }
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center px-4">

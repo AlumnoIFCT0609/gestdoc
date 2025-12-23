@@ -3,19 +3,17 @@ export const useAuthFetch = () => {
     url: string, 
     options: RequestInit = {}
   ) => {
+    const API_URL = import.meta.env.VITE_API_URL || ''
+    
     // Si es un archivo estático, no añadir token
     if (url.startsWith('/docs')) {
-      return fetch(url, options)
+      return fetch(`${API_URL}${url}`, options)
     }
     
     // Para peticiones API, añadir token
     const token = sessionStorage.getItem('token')
     
-    /*const headers: any = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    }*/
-   const headers: any = {
+    const headers: any = {
       ...(options.headers || {})
     }
     
@@ -23,7 +21,7 @@ export const useAuthFetch = () => {
       headers['Authorization'] = `Bearer ${token}`
     }
     
-    return fetch(url, { 
+    return fetch(`${API_URL}${url}`, { 
       ...options, 
       headers
     })
