@@ -17,11 +17,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 const PORT = Number(process.env.PORT) || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
+/*app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Servidor corriendo en puerto ${PORT}`);
   console.log(`📡 API disponible en /api`);
 });
-
+*/
 // Middleware
 app.use(cors())
 app.use(express.json())
@@ -54,9 +54,9 @@ async function start() {
   try {
     await initDatabase()
     
-    app.listen(PORT, () => {
-      console.log(`🌐 Servidor corriendo en http://localhost:${PORT}`)
-      console.log(`📡 API disponible en http://localhost:${PORT}/api`)
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🌐 Servidor corriendo en puerto ${PORT}`)
+      console.log(`📡 API disponible en /api`)
     })
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error)
