@@ -90,8 +90,8 @@ function App() {
         <Usuarios onCerrar={() => setMostrarUsuarios(false)} />
       )}
       {mostrarCursos && tienePermiso('cursos') && (
-        <Cursos onCerrar={() => setMostrarCursos(false)} usuarioRol={usuario?.rol} />
-      )}
+      //  <Cursos onCerrar={() => setMostrarCursos(false)} usuarioRol={usuario?.rol} />
+      )} 
       {mostrarTutores && tienePermiso('tutores') && (
         <Tutores onCerrar={() => setMostrarTutores(false)} />
       )}
@@ -99,7 +99,7 @@ function App() {
         <Alumnos onCerrar={() => setMostrarAlumnos(false)} />
       )}
       {mostrarDocumentacion && tienePermiso('documentacion') && (
-        <Documentacion onCerrar={() => setMostrarDocumentacion(false)} usuarioRol={usuario?.rol} />
+       // <Documentacion onCerrar={() => setMostrarDocumentacion(false)} usuarioRol={usuario?.rol} />
       )}
       {mostrarEdicionesCursos && tienePermiso('edicionesCursos') && (
         <EdicionesCursos onCerrar={() => setMostrarEdicionesCursos(false)} />
