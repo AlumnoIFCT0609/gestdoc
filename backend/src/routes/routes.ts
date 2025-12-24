@@ -236,4 +236,65 @@ router.post('/cargar-pdfs', async (req, res) => {
   }
 })
 
+// Subir PDF a Cloudinary
+router.post('/subir-pdf-cloudinary', async (req, res) => {
+  try {
+    // Verificar que Cloudinary está configurado
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      return res.status(500).json({ 
+        error: 'Cloudinary no está configurado en el servidor' 
+      })
+    }
+
+    const { fileBase64, filename, carpeta } = req.body
+
+    if (!fileBase64 || !filename) {
+      return res.status(400).json({ 
+        error: 'Faltan datos: fileBase64 y filename son requeridos' 
+      })
+    }
+
+    console.log(`📤 Subiendo "${filename}" a Cloudinary...`)
+
+    // Subir a Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(
+        fileBase64,
+        {
+          resource_type: 'raw',
+          folder: `documentacion/${carpeta || 'general'}`,
+          public_id: filename.replace('.pdf', ''),
+          format: 'pdf',
+          type: 'upload',
+          access_mode: 'public' 
+        },
+        (error: any, result: any) => {
+          if (error) reject(error)
+          else resolve(result)
+        }
+      )
+    })
+
+    const uploadResult: any = result
+
+    console.log(`✅ PDF subido exitosamente: ${uploadResult.secure_url}`)
+
+    res.json({
+      success: true,
+      url: uploadResult.secure_url,
+      public_id: uploadResult.public_id,
+      mensaje: `✅ "${filename}" subido correctamente`
+    })
+
+  } catch (error) {
+    console.error('❌ Error al subir PDF:', error)
+    res.status(500).json({ 
+      error: 'Error al subir PDF a Cloudinary',
+      detalle: error instanceof Error ? error.message : 'Error desconocido'
+    })
+  }
+})
+
+
+
 export default router

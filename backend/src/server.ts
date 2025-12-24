@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
@@ -21,7 +22,9 @@ const PORT = Number(process.env.PORT) || 3000;
 
 // Middleware
 app.use(cors())
-app.use(express.json())
+//app.use(express.json())
+app.use(express.json({ limit: '50mb' }))  // ← Aumenta el límite
+app.use(express.urlencoded({ limit: '50mb', extended: true }))  // ← Para formularios también
 
 // Servir archivos estáticos de la carpeta docs
 app.use('/docs', express.static(path.resolve(__dirname, '../../../docs')))
@@ -49,6 +52,13 @@ async function start() {
       console.log(`🌐 Servidor corriendo en puerto ${PORT}`)
       console.log(`📡 API disponible en /api`)
     })
+    // ← TEMPORAL: para verificar variables de entorno
+console.log('🔍 Variables de Cloudinary:')
+console.log('  CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME || '❌ NO DEFINIDA')
+console.log('  CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY ? '✅ Definida' : '❌ NO DEFINIDA')
+console.log('  CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? '✅ Definida' : '❌ NO DEFINIDA')
+console.log('  USE_CLOUDINARY:', process.env.USE_CLOUDINARY)
+
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error)
     process.exit(1)

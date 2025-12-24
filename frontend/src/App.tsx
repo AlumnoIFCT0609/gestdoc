@@ -7,6 +7,7 @@ import Alumnos from './components/Alumnos'
 import Documentacion from './components/Documentacion'
 import EdicionesCursos from './components/EdicionesCursos'  
 import MatriculasAlumnos from './components/matriculasAlumnos'
+import SubirPDFCloudinary from './components/SubirPDFCloudinary' // ← NUEVO
 
 function App() {
   const [autenticado, setAutenticado] = useState(false)
@@ -18,6 +19,7 @@ function App() {
   const [mostrarDocumentacion, setMostrarDocumentacion] = useState(false)
   const [mostrarEdicionesCursos, setMostrarEdicionesCursos] = useState(false)
   const [mostrarMatriculasAlumnos, setMostrarMatriculasAlumnos] = useState(false)
+  const [mostrarSubirPDF, setMostrarSubirPDF] = useState(false) // ← NUEVO
 
   useEffect(() => {
     verificarAutenticacion()
@@ -63,7 +65,8 @@ function App() {
       'alumnos': ['Admin', 'Tutor'],
       'documentacion': ['Admin', 'Tutor', 'Alumno'],
       'edicionesCursos': ['Admin', 'Tutor'],
-      'matriculasAlumnos': ['Admin', 'Tutor']
+      'matriculasAlumnos': ['Admin', 'Tutor'],
+      'subirPDF': ['Admin', 'Tutor'] // ← NUEVO
     }
 
     return permisos[seccion]?.includes(rol) || false
@@ -85,7 +88,7 @@ function App() {
   return (
     <div className="min-h-screen bg-app py-6 px-4">
 
-      {/* Validar permisos antes de mostrar cada sección */}
+      {/* Modales */}
       {mostrarUsuarios && tienePermiso('usuarios') && (
         <Usuarios onCerrar={() => setMostrarUsuarios(false)} />
       )}
@@ -107,6 +110,17 @@ function App() {
       {mostrarMatriculasAlumnos && tienePermiso('matriculasAlumnos') && (
         <MatriculasAlumnos onCerrar={() => setMostrarMatriculasAlumnos(false)} />
       )}
+      
+      {/* ← NUEVO: Modal para subir PDF a Cloudinary */}
+      {mostrarSubirPDF && tienePermiso('subirPDF') && (
+        <SubirPDFCloudinary 
+          onCerrar={() => setMostrarSubirPDF(false)}
+          onExito={() => {
+            setMostrarSubirPDF(false)
+            alert('✅ PDF subido correctamente a Cloudinary')
+          }}
+        />
+      )}
 
       <div className="max-w-7xl mx-auto">
 
@@ -116,10 +130,20 @@ function App() {
             📚 Gestión de Cursos
           </h2>
 
-          <div className="flex items-center gap-4 w-full max-w-xs">
+          <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">
               👤 {usuario?.email} ({usuario?.rol})
             </span>
+
+            {/* ← NUEVO: Botón Subir PDF (solo Admin y Tutor) */}
+            {tienePermiso('subirPDF') && (
+              <button
+                onClick={() => setMostrarSubirPDF(true)}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              >
+                ☁️ Subir PDF
+              </button>
+            )}
 
             <button
               onClick={handleLogout}
