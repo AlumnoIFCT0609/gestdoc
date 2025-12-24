@@ -1,34 +1,35 @@
 import { useState, useEffect } from 'react'
-import { useAuthFetch } from './hooks/useAuthFetch'
+import { useAuthFetch } from '../hooks/useAuthFetch'
 
-interface Tutor {
+interface Alumno {
   id: number
   nombre: string
   apellidos: string | null
   dni: string  | null
   email:string
   tlf: string  | null
-  especialidad: string | null
+  grupo: string | null
   observaciones: string | null
   activo: boolean
   fecha_creacion: string
 }
 
-interface TutoresProps {
+interface AlumnosProps {
   onCerrar: () => void
 }
 
-function Tutores({ onCerrar }: TutoresProps) {
-  console.log('🔵 Componente Tutores montado')
+function Alumnos({ onCerrar }: AlumnosProps) {
+  console.log('🔵 Componente Alumnos montado')
   const authFetch = useAuthFetch()
-  const [tutores, setTutores] = useState<Tutor[]>([])
+  
+  const [alumnos, setAlumnos] = useState<Alumno[]>([])
   const [formData, setFormData] = useState({
     nombre: '',
     apellidos: '',
     dni:'',
     email:'',
     tlf:'',
-    especialidad: '',
+    grupo: '',
     observaciones:'',
     activo:true
   })
@@ -36,23 +37,24 @@ function Tutores({ onCerrar }: TutoresProps) {
   const [mensaje, setMensaje] = useState('')
 
   useEffect(() => {
-    cargarTutores()
+    cargarAlumnos()
   }, [])
 
-  const cargarTutores = async () => {
+  const cargarAlumnos = async () => {
     try {
-      const res = await authFetch('/api/tutores')
-       if (!res.ok) {
-          setMensaje('❌ Error al cargar tutores')
+     // const res = await fetch('/api/alumnos')
+      const res = await authFetch('/api/alumnos')
+        if (!res.ok) {
+          setMensaje('❌ Error al cargar alumnos')
         return
         }
       const data = await res.json()
-      setTutores(Array.isArray(data) ? data : []) 
-
-      setTutores(data)
+       setAlumnos(Array.isArray(data) ? data : []) 
+      //setAlumnos(data)
     } catch (error) {
-      console.error('Error al cargar tutores:', error)
-      setMensaje('Error al cargar tutores')
+
+      console.error('Error al cargar alumnos:', error)
+      setMensaje('Error al cargar alumnos')
     }
   }
 
@@ -61,8 +63,8 @@ function Tutores({ onCerrar }: TutoresProps) {
     
     try {
       if (editando) {
-        // Actualizar Tutor existente
-        const res = await authFetch(`/api/tutores/${editando}`, {
+        // Actualizar alumno existente
+        const res = await authFetch(`/api/alumnos/${editando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -70,15 +72,15 @@ function Tutores({ onCerrar }: TutoresProps) {
         
         if (!res.ok) {
           const error = await res.json()
-          setMensaje(error.error || 'Error al actualizar tutor')
+          setMensaje(error.error || 'Error al actualizar alumno')
           setTimeout(() => setMensaje(''), 3000)
           return
         }
         
-        setMensaje('✅ Tutor actualizado correctamente')
+        setMensaje('✅ Alumno actualizado correctamente')
       } else {
-        // Crear nuevo Tutor
-        const res = await authFetch('/api/tutores', {
+        // Crear nuevo alumnoo
+        const res = await authFetch('/api/alumnos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -86,12 +88,12 @@ function Tutores({ onCerrar }: TutoresProps) {
         
         if (!res.ok) {
           const error = await res.json()
-          setMensaje(error.error || 'Error al crear tutor')
+          setMensaje(error.error || 'Error al crear alumno')
           setTimeout(() => setMensaje(''), 3000)
           return
         }
         
-        setMensaje('✅ Tutor creado correctamente')
+        setMensaje('✅ Alumno creado correctamente')
       }
       
       setFormData({nombre: '',
@@ -99,52 +101,52 @@ function Tutores({ onCerrar }: TutoresProps) {
                 dni:'',
                 email:'',
                 tlf:'',
-                especialidad: '',
+                grupo: '',
                 observaciones:'',
                 activo:true })
 
       setEditando(null)
-      cargarTutores()
+      cargarAlumnos()
       setTimeout(() => setMensaje(''), 3000)
     } catch (error) {
       console.error('Error:', error)
-      setMensaje('❌ Error al guardar tutor')
+      setMensaje('❌ Error al guardar alumno')
       setTimeout(() => setMensaje(''), 3000)
     }
   }
 
-  const editar = (tutor: Tutor) => {
+  const editar = (alumno: Alumno) => {
     setFormData({
-      nombre: tutor.nombre,
-      apellidos: tutor.apellidos || '',
-      dni: tutor.dni || '',  
-      email: tutor.email || '',
-      tlf: tutor.tlf || '',
-      especialidad: tutor.especialidad || '',
-      observaciones: tutor.observaciones|| '',
-      activo: tutor.activo
+      nombre: alumno.nombre,
+      apellidos: alumno.apellidos || '',
+      dni: alumno.dni || '',  
+      email: alumno.email || '',
+      tlf: alumno.tlf || '',
+      grupo: alumno.grupo || '',
+      observaciones: alumno.observaciones|| '',
+      activo: alumno.activo
     })
-    setEditando(tutor.id)
+    setEditando(alumno.id)
   }
   const crearUsuario = async (id: number) => {
-  if (!confirm('¿Seguro que deseas crear usuario para este tutor?')) return
+  if (!confirm('¿Seguro que deseas crear usuario para este alumno?')) return
   
   try {
     // 1. Obtener los datos del alumno
-    const resTutor = await authFetch(`/api/tutores/${id}`)
-    const tutor = await resTutor.json()
+    const resAlumno = await authFetch(`/api/alumnos/${id}`)
+    const alumno = await resAlumno.json()
     
-    /*if (!tutor.email) {
-      setMensaje('❌ El tutor no tiene email registrado')
+    if (!alumno.email) {
+      setMensaje('❌ El alumno no tiene email registrado')
       setTimeout(() => setMensaje(''), 3000)
       return
-    }*/
+    }
     
     // 2. Verificar si ya existe un usuario con ese email
     const resUsuarios = await authFetch('/api/usuarios')
     const usuarios = await resUsuarios.json()
     
-    const usuarioExistente = usuarios.find((u: any) => u.email === tutor.email)
+    const usuarioExistente = usuarios.find((u: any) => u.email === alumno.email)
     
     if (usuarioExistente) {
       setMensaje('⚠️ Ya existe un usuario con ese email')
@@ -154,9 +156,9 @@ function Tutores({ onCerrar }: TutoresProps) {
     
     // 3. Crear el nuevo usuario
     const nuevoUsuario = {
-      email: tutor.email,
-      password: tutor.dni,
-      rol: 'Tutor',
+      email: alumno.email,
+      password: alumno.dni,
+      rol: 'Alumno',
       activo: true
     }
     
@@ -179,29 +181,30 @@ function Tutores({ onCerrar }: TutoresProps) {
     
   } catch (error) {
     console.error('Error:', error)
-    setMensaje('❌ Error al crear usuario para el tutor')
+    setMensaje('❌ Error al crear usuario para el alumno')
     setTimeout(() => setMensaje(''), 3000)
   }
 }
+
   const eliminar = async (id: number) => {
-    if (!confirm('¿Seguro que deseas eliminar este tutor?')) return
+    if (!confirm('¿Seguro que deseas eliminar este alumno?')) return
     
     try {
-      const res = await authFetch(`/api/tutores/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/alumnos/${id}`, { method: 'DELETE' })
       const data = await res.json()
       
       if (!res.ok) {
-        setMensaje(data.error || '❌ Error al eliminar tutor')
+        setMensaje(data.error || '❌ Error al eliminar alumno')
         setTimeout(() => setMensaje(''), 3000)
         return
       }
       
-      setMensaje('✅ Tutor eliminado correctamente')
-      cargarTutores()
+      setMensaje('✅ Alumno eliminado correctamente')
+      cargarAlumnos()
       setTimeout(() => setMensaje(''), 3000)
     } catch (error) {
       console.error('Error:', error)
-      setMensaje('❌ Error al eliminar Tutor')
+      setMensaje('❌ Error al eliminar Alumnos')
       setTimeout(() => setMensaje(''), 3000)
     }
   }
@@ -212,7 +215,7 @@ function Tutores({ onCerrar }: TutoresProps) {
                 dni:'',
                 email:'',
                 tlf:'',
-                especialidad: '',
+                grupo: '',
                 observaciones:'',
                 activo:true})
     setEditando(null)
@@ -222,7 +225,7 @@ function Tutores({ onCerrar }: TutoresProps) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">👥 Gestión de Tutores</h2>
+          <h2 className="text-2xl font-bold text-gray-800">👥 Gestión de Alumnos</h2>
           <button
             onClick={onCerrar}
             className="text-gray-500 hover:text-gray-700 text-3xl font-bold leading-none"
@@ -244,7 +247,7 @@ function Tutores({ onCerrar }: TutoresProps) {
 
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-3">
-              {editando ? '✏️ Editar Tutor' : '➕ Nuevo Tutor'}
+              {editando ? '✏️ Editar Alumno' : '➕ Nuevo Alumno'}
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -290,16 +293,16 @@ function Tutores({ onCerrar }: TutoresProps) {
                   
                 />
                 <select
-                  value={formData.especialidad}
-                  onChange={(e) => setFormData({ ...formData, especialidad: e.target.value })}
+                  value={formData.grupo}
+                  onChange={(e) => setFormData({ ...formData, grupo: e.target.value })}
                   className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   
-                > <option value="">elige opcion</option>
-                  <option value="informatica">Informática</option>
-                  <option value="ingles">Inglés</option>
-                  <option value="apoyo">Apoyo Escolar</option>
-                  <option value="calidad">Calidad</option>
-                  <option value="administración">Administracion</option>
+                >
+                  <option value="desempleados">Desempleados</option>
+                  <option value="ocupados">Trabajadores</option>
+                  <option value="empresa">Curso a empresa</option>
+                  <option value="jovenes">Jovenes</option>
+                  <option value="mayores">Mayores</option>
                 </select>
                 <input
                   type="text"
@@ -322,7 +325,7 @@ function Tutores({ onCerrar }: TutoresProps) {
                   type="submit"
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm rounded transition font-medium"
                 >
-                  {editando ? '💾 Actualizar' : '➕ Crear Tutor'}
+                  {editando ? '💾 Actualizar' : '➕ Crear Alumno'}
                 </button>
                 {editando && (
                   <button
@@ -347,7 +350,7 @@ function Tutores({ onCerrar }: TutoresProps) {
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Dni</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Email</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Tlf</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Especialidad</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Grupo</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Observaciones</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Activo</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Fecha Creación</th>
@@ -355,51 +358,53 @@ function Tutores({ onCerrar }: TutoresProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {tutores.length === 0 ? (
+                {alumnos.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                      📭 No hay tutores registrados
+                      📭 No hay alumnos registrados
                     </td>
                   </tr>
                 ) : (
-                  tutores.map((tutor) => (
-                    <tr key={tutor.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{tutor.id}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{tutor.nombre}</td>
-                      <td className="px-4 py-3 text-sm">{tutor.apellidos ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{tutor.dni ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm">{tutor.email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{tutor.tlf ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{tutor.especialidad ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{tutor.observaciones ?? '—'}</td>
-                      <td className="h-5 w-5">
-                            <input type="checkbox" checked={tutor.activo} readOnly/>
+                  alumnos.map((alumno) => (
+                    <tr key={alumno.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">{alumno.id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{alumno.nombre}</td>
+                      <td className="px-4 py-3 text-sm">{alumno.apellidos ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{alumno.dni ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm">{alumno.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{alumno.tlf ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{alumno.grupo ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{alumno.observaciones ?? '—'}</td>
+                      <td className="h-5 w-3">
+                            <input type="checkbox" checked={alumno.activo} readOnly/>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(tutor.fecha_creacion).toLocaleDateString('es-ES')}
+                        {new Date(alumno.fecha_creacion).toLocaleDateString('es-ES')}
                       </td>
                       <td className="px-4 py-3 text-sm whitespace-nowrap">
                         <button
-                          onClick={() => editar(tutor)}
+                          onClick={() => editar(alumno)}
                           className="text-blue-600 hover:text-blue-900 mr-3 text-lg"
-                          title="Editar tutor"
+                          title="Editar alumno"
                         >
                           ✏️
                         </button>
                         <button
-                          onClick={() => eliminar(tutor.id)}
+                          onClick={() => eliminar(alumno.id)}
                           className="text-red-600 hover:text-red-900 text-lg"
-                          title="Eliminar tutor"
+                          title="Eliminar alumno"
                         >
                           🗑️
                         </button>
                          <button
-                          onClick={() => crearUsuario(tutor.id)}
+                          onClick={() => crearUsuario(alumno.id)}
                           className="text-red-600 hover:text-red-900 text-lg"
                           title="Crear usuario"
                         >
                           👤
                         </button>
+
+
                       </td>
                     </tr>
                   ))
@@ -413,4 +418,4 @@ function Tutores({ onCerrar }: TutoresProps) {
   )
 }
 
-export default Tutores
+export default Alumnos

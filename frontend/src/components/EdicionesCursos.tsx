@@ -1,4 +1,4 @@
-import { useAuthFetch } from './hooks/useAuthFetch'
+import { useAuthFetch } from '../hooks/useAuthFetch'
 import { useState, useEffect } from 'react'
 
 interface EdicionCurso {

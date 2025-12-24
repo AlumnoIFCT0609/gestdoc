@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import pool from './database.js'
+import pool from '../database/database.js'
 
 const router = Router()
 const JWT_SECRET = 'tu-secreto-super-seguro-cambialo-en-produccion'

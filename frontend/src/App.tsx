@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import Login from './Login'
-import Usuarios from './Usuarios'
-import Cursos from './Cursos'
-import Tutores from './Tutores'
-import Alumnos from './Alumnos'
-import Documentacion from './Documentacion'
-import EdicionesCursos from './EdicionesCursos'  
-import MatriculasAlumnos from './matriculasAlumnos'
+import Usuarios from './components/Usuarios'
+import Cursos from './components/Cursos'
+import Tutores from './components/Tutores'
+import Alumnos from './components/Alumnos'
+import Documentacion from './components/Documentacion'
+import EdicionesCursos from './components/EdicionesCursos'  
+import MatriculasAlumnos from './components/matriculasAlumnos'
 
 function App() {
   const [autenticado, setAutenticado] = useState(false)

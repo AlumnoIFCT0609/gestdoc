@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuthFetch } from './hooks/useAuthFetch'
+import { useAuthFetch } from '../hooks/useAuthFetch'
 
 interface Curso {
   id: number
