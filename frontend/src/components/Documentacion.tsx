@@ -348,7 +348,34 @@ function Documentacion({ onCerrar }: DocumentacionProps) {
                   <tr key={doc.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
                       <a href={doc.enlace} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                        {doc.enlace.split('/').pop()}
+                       {(() => {
+                          const urlLimpia = doc.enlace.endsWith('/') ? doc.enlace.slice(0, -1) : doc.enlace
+                          const partes = urlLimpia.split('/')
+                          const ultimaParte = partes.pop() || doc.enlace
+                          
+                          // Si es un PDF, mostrar solo el nombre del archivo
+                          if (ultimaParte.toLowerCase().endsWith('.pdf')) {
+                            return ultimaParte
+                          }
+                          
+                          // Para enlaces web (no PDF), agregar el dominio
+                          try {
+                            const domain = new URL(doc.enlace).hostname.replace('www.', '')
+                            
+                            // Si la última parte es muy corta, incluir la penúltima
+                            if (ultimaParte.length < 8 && partes.length > 0) {
+                              return `${domain}/${partes.pop()}/${ultimaParte}`
+                            }
+                            
+                            return `${domain}/${ultimaParte}`
+                          } catch {
+                            // Si falla el parsing de URL, usar el método anterior
+                            if (ultimaParte.length < 8 && partes.length > 0) {
+                              return `${partes.pop()}/${ultimaParte}`
+                            }
+                            return ultimaParte
+                          }
+                        })()}
                       </a>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{doc.tema}</td>
