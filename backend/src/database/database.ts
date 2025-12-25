@@ -133,18 +133,18 @@ export async function initDatabase() {
     // Verificar si ya existe el usuario admin
     const existeAdmin = await client.query(
       'SELECT id FROM usuarios WHERE email = $1',
-      ['admin@admin.com']
+      ['admin2@admin.com']
     )
     
     if (existeAdmin.rows.length === 0) {
       const bcrypt = await import('bcrypt')
-      const hashedPassword = await bcrypt.hash('admin123', 10)
+      const hashedPassword = await bcrypt.hash('admin321', 10)
       
       await client.query(
         'INSERT INTO usuarios (email, password, rol) VALUES ($1, $2, $3)',
-        ['admin@admin.com', hashedPassword, 'Admin']
+        ['admin2@admin.com', hashedPassword, 'Admin']
       )
-      console.log('✅ Usuario admin creado (email: admin@admin.com, pass: admin123)')
+      console.log('✅ Usuario admin creado (email: admin2@admin.com, pass: admin321)')
     } else {
       console.log('✅ Usuario admin ya existe')
     }

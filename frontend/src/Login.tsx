@@ -34,6 +34,7 @@ function Login({ onLogin }: LoginProps) {
 
     sessionStorage.setItem('token', data.token)
     sessionStorage.setItem('usuario', JSON.stringify(data.usuario))
+    sessionStorage.setItem('rol', data.usuario.rol)
     
     onLogin(data.token, data.usuario)
   } catch (error) {
@@ -96,8 +97,8 @@ function Login({ onLogin }: LoginProps) {
 
         <div className="mt-6 p-4 bg-gray-50 rounded text-sm text-gray-600">
           <p className="font-semibold mb-1">👤 Credenciales de prueba:</p>
-          <p>Email: <span className="font-mono">admin@admin.com</span></p>
-          <p>Password: <span className="font-mono">admin123</span></p>
+          <p>Email: <span className="font-mono">alumno@admin.com</span></p>
+          <p>Password: <span className="font-mono">alumno123</span></p>
         </div>
       </div>
     </div>

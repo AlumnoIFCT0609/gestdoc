@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthFetch } from '../hooks/useAuthFetch'
+import { useRolePermissions } from '../hooks/useRolePermissions'
 
 interface Curso {
   id: number
@@ -8,7 +9,7 @@ interface Curso {
   duracion_horas: number | null
   observaciones: string | null
   nivel: number | null
-  activo:boolean
+  activo: boolean
   fecha_creacion: string
 }
 
@@ -19,14 +20,16 @@ interface CursosProps {
 function Cursos({ onCerrar }: CursosProps) {
   console.log('🔵 Componente Cursos montado')
   const authFetch = useAuthFetch()
+  const { canCreate, canEdit, canDelete, isLoading } = useRolePermissions(['Admin'])
+  
   const [cursos, setCursos] = useState<Curso[]>([])
   const [formData, setFormData] = useState({
     codigo: '',
     descripcion: '',
     duracion_horas: '',
-    observaciones:'',
-    nivel:'',
-    activo:true
+    observaciones: '',
+    nivel: '',
+    activo: true
   })
   const [editando, setEditando] = useState<number | null>(null)
   const [mensaje, setMensaje] = useState('')
@@ -49,9 +52,20 @@ function Cursos({ onCerrar }: CursosProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!canCreate && !editando) {
+      setMensaje('❌ No tienes permisos para crear cursos')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+    
+    if (!canEdit && editando) {
+      setMensaje('❌ No tienes permisos para editar cursos')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+    
     try {
       if (editando) {
-        // Actualizar curso existente
         const res = await authFetch(`/api/cursos/${editando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -67,7 +81,6 @@ function Cursos({ onCerrar }: CursosProps) {
         
         setMensaje('✅ Curso actualizado correctamente')
       } else {
-        // Crear nuevo curso
         const res = await authFetch('/api/cursos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -84,7 +97,7 @@ function Cursos({ onCerrar }: CursosProps) {
         setMensaje('✅ Curso creado correctamente')
       }
       
-      setFormData({ codigo: '', descripcion: '', duracion_horas: '', observaciones:'', nivel:'',activo:true })
+      setFormData({ codigo: '', descripcion: '', duracion_horas: '', observaciones: '', nivel: '', activo: true })
       setEditando(null)
       cargarCursos()
       setTimeout(() => setMensaje(''), 3000)
@@ -96,11 +109,17 @@ function Cursos({ onCerrar }: CursosProps) {
   }
 
   const editar = (curso: Curso) => {
+    if (!canEdit) {
+      setMensaje('❌ No tienes permisos para editar cursos')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+    
     setFormData({
       codigo: curso.codigo,
       descripcion: curso.descripcion,
-      duracion_horas: curso.duracion_horas?.toString() || '',  
-      observaciones: curso.observaciones|| '',
+      duracion_horas: curso.duracion_horas?.toString() || '',
+      observaciones: curso.observaciones || '',
       nivel: curso.nivel?.toString() || '',
       activo: curso.activo
     })
@@ -108,10 +127,16 @@ function Cursos({ onCerrar }: CursosProps) {
   }
 
   const eliminar = async (id: number) => {
+    if (!canDelete) {
+      setMensaje('❌ No tienes permisos para eliminar cursos')
+      setTimeout(() => setMensaje(''), 3000)
+      return
+    }
+    
     if (!confirm('¿Seguro que deseas eliminar este curso?')) return
     
     try {
-      const res = await fetch(`/api/cursos/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/cursos/${id}`, { method: 'DELETE' })
       const data = await res.json()
       
       if (!res.ok) {
@@ -131,8 +156,18 @@ function Cursos({ onCerrar }: CursosProps) {
   }
 
   const cancelar = () => {
-    setFormData({ codigo: '', descripcion: '', duracion_horas: '', observaciones:'', nivel:'', activo:true })
+    setFormData({ codigo: '', descripcion: '', duracion_horas: '', observaciones: '', nivel: '', activo: true })
     setEditando(null)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg p-8">
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -159,101 +194,111 @@ function Cursos({ onCerrar }: CursosProps) {
             </div>
           )}
 
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">
-              {editando ? '✏️ Editar Curso' : '➕ Nuevo Curso'}
-            </h3>
+          {canCreate && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                {editando ? '✏️ Editar Curso' : '➕ Nuevo Curso'}
+              </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input
-                  type="text"
-                  placeholder="codigo"
-                  value={formData.codigo}
-                  onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-                  className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder= "descripcion"
-                  value={formData.descripcion}
-                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  
-                />
-                <input
-                  type="text"
-                  placeholder= "duracion_horas"
-                  value={formData.duracion_horas}
-                  onChange={(e) => setFormData({ ...formData, duracion_horas: e.target.value })}
-                  className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  
-                />
-                <input
-                  type="text"
-                  placeholder= "observaciones"
-                  value={formData.observaciones}
-                  onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
-                  className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  
-                />
-                <input
-                  type="text"
-                  placeholder= "nivel"
-                  value={formData.nivel}
-                  onChange={(e) => setFormData({ ...formData, nivel: e.target.value })}
-                  className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  
-                />
-                <input
-                  type="checkbox"
-                  checked={formData.activo}
-                  onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
-                  className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                />
-                  
-              </div>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Código"
+                    value={formData.codigo}
+                    onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
+                    className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Descripción"
+                    value={formData.descripcion}
+                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                    className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Duración (horas)"
+                    value={formData.duracion_horas}
+                    onChange={(e) => setFormData({ ...formData, duracion_horas: e.target.value })}
+                    className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Observaciones"
+                    value={formData.observaciones}
+                    onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
+                    className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nivel"
+                    value={formData.nivel}
+                    onChange={(e) => setFormData({ ...formData, nivel: e.target.value })}
+                    className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.activo}
+                      onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
+                      className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <label className="text-sm text-gray-700">Activo</label>
+                  </div>
+                </div>
 
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm rounded transition font-medium"
-                >
-                  {editando ? '💾 Actualizar' : '➕ Crear Curso'}
-                </button>
-                {editando && (
+                <div className="flex gap-2">
                   <button
-                    type="button"
-                    onClick={cancelar}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 text-sm rounded transition font-medium"
+                    type="submit"
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm rounded transition font-medium"
                   >
-                    ❌ Cancelar
+                    {editando ? '💾 Actualizar' : '➕ Crear Curso'}
                   </button>
-                )}
-              </div>
-            </form>
-          </div>
+                  {editando && (
+                    <button
+                      type="button"
+                      onClick={cancelar}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 text-sm rounded transition font-medium"
+                    >
+                      ❌ Cancelar
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+          )}
+
+          {!canCreate && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
+                ℹ️ Solo los administradores pueden crear, editar o eliminar cursos
+              </p>
+            </div>
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Codigo</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Descripcion</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Duracion(horas)</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Código</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Descripción</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Duración(horas)</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Observaciones</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Nivel</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Activo</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Fecha Creación</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Acciones</th>
+                  {(canEdit || canDelete) && (
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase border-b-2">Acciones</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {cursos.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={canEdit || canDelete ? 9 : 8} className="px-4 py-8 text-center text-gray-500">
                       📭 No hay cursos registrados
                     </td>
                   </tr>
@@ -266,28 +311,34 @@ function Cursos({ onCerrar }: CursosProps) {
                       <td className="px-4 py-3 text-sm text-gray-600">{curso.duracion_horas ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{curso.observaciones ?? '—'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{curso.nivel ?? '—'}</td>
-                      <td className="h-5 w-5">
-                            <input type="checkbox" checked={curso.activo} readOnly/>
+                      <td className="px-4 py-3">
+                        <input type="checkbox" checked={curso.activo} readOnly className="h-5 w-5" />
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {new Date(curso.fecha_creacion).toLocaleDateString('es-ES')}
                       </td>
-                      <td className="px-4 py-3 text-sm whitespace-nowrap">
-                        <button
-                          onClick={() => editar(curso)}
-                          className="text-blue-600 hover:text-blue-900 mr-3 text-lg"
-                          title="Editar curso"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => eliminar(curso.id)}
-                          className="text-red-600 hover:text-red-900 text-lg"
-                          title="Eliminar curso"
-                        >
-                          🗑️
-                        </button>
-                      </td>
+                      {(canEdit || canDelete) && (
+                        <td className="px-4 py-3 text-sm whitespace-nowrap">
+                          {canEdit && (
+                            <button
+                              onClick={() => editar(curso)}
+                              className="text-blue-600 hover:text-blue-900 mr-3 text-lg"
+                              title="Editar curso"
+                            >
+                              ✏️
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => eliminar(curso.id)}
+                              className="text-red-600 hover:text-red-900 text-lg"
+                              title="Eliminar curso"
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}

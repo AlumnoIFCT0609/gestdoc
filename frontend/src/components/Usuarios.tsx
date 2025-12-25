@@ -20,7 +20,7 @@ function Usuarios({ onCerrar }: UsuariosProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rol: 'admin'
+    rol: 'Admin'
   })
   const [editando, setEditando] = useState<number | null>(null)
   const [mensaje, setMensaje] = useState('')
@@ -79,7 +79,7 @@ function Usuarios({ onCerrar }: UsuariosProps) {
         setMensaje('✅ Usuario creado correctamente')
       }
       
-      setFormData({ email: '', password: '', rol: 'admin' })
+      setFormData({ email: '', password: '', rol: 'Admin' })
       setEditando(null)
       cargarUsuarios()
       setTimeout(() => setMensaje(''), 3000)
@@ -123,7 +123,7 @@ function Usuarios({ onCerrar }: UsuariosProps) {
   }
 
   const cancelar = () => {
-    setFormData({ email: '', password: '', rol: 'admin' })
+    setFormData({ email: '', password: '', rol: 'Admin' })
     setEditando(null)
   }
 
@@ -232,9 +232,9 @@ function Usuarios({ onCerrar }: UsuariosProps) {
                       <td className="px-4 py-3 text-sm text-gray-900">{user.email}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                          user.rol === 'admin' ? 'bg-purple-100 text-purple-800' :
-                          user.rol === 'moderador' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-200 text-gray-800'
+                          user.rol === 'Admin' ? 'bg-purple-100 text-purple-800' :
+                          user.rol === 'Tutor' ? 'bg-blue-100 text-blue-800' :
+                          'bg-green-200 text-green-800'
                         }`}>
                           {user.rol}
                         </span>
